@@ -1,10 +1,15 @@
 # VidiQ IPTV Panel
 
+## Login Page
+Access the login page by navigating to [Panel URL]/public/login.php. Use the credentials provided during installation to log in. The login page features dynamic animations and a clean, modern design fitting the panel's aesthetic.
+
 ![VidiQ Logo](public/images/VidiQ_Logo.png)
 
 Welcome to the VidiQ IPTV Panel, an advanced solution for managing IPTV services. This panel is designed with a focus on performance, usability, and scalability.
 
 ## Features
+- Secure login mechanism
+- Animated logo and sleek design
 - Live TV and VOD Streaming
 - DRM Support for content protection
 - Reseller management module
