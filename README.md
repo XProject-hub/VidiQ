@@ -1,0 +1,18 @@
+### Features
+- Login page at `/public/index.php`
+- Admin dashboard at `/admin/dashboard/dashboard.php` with navigation for:
+  - Users
+  - Media
+  - Settings
+  - Logs
+- Secure session-based authentication.
+- Logout functionality via `/logout.php`.
+- Manage Users
+  - View all users.
+  - Add new users.
+  - Edit or delete existing users (coming soon).
+  - Manage Users
+  - View all users.
+  - Add new users.
+  - Edit user details.
+  - Delete users.
