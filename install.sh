@@ -35,19 +35,19 @@ chmod -R 755 /home/vidiq/panel
 cat <<EOF > /etc/nginx/sites-available/vidiq
 server {
     listen 80;
-    server_name $domain_name;
+    server_name localhost;
 
     root /home/vidiq/panel/public;
     index login.php index.html;
 
     location / {
-        try_files \$uri \$uri/ =404;
+        try_files $uri $uri/ =404;
     }
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
     }
 }
