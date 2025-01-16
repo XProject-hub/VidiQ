@@ -25,7 +25,7 @@ $streams = $db->query("SELECT * FROM streams");
         </div>
         <nav class="navbar">
             <ul>
-                <li><a href="/admin/dashboard/dashboard.php">Dashboard</a></li>
+                <li><a href="/admin/dashboard.php">Dashboard</a></li>
                 <li><a href="/admin/users/index.php">Users</a></li>
                 <li><a href="/admin/streams/index.php" class="active">Streams</a></li>
                 <li><a href="/admin/reseller/index.php">Resellers</a></li>

@@ -23,7 +23,7 @@ if (!isset($_SESSION['user'])) {
         </div>
         <nav class="navbar">
             <ul>
-                <li><a href="/admin/dashboard/dashboard.php">Dashboard</a></li>
+                <li><a href="/admin/dashboard.php">Dashboard</a></li>
                 <li class="dropdown">
                     <a href="#">Manage</a>
                     <ul class="dropdown-menu">

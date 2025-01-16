@@ -10,7 +10,7 @@ reset="\033[0m"
 # Banner
 clear
 echo -e "${cyan}================${reset}"
-echo -e "${white}Welcome to Vidiq${reset}"
+echo -e "${white}Welcome to VidiQ${reset}"
 echo -e "${white}Developed by X Project${reset}"
 echo -e "${cyan}================${reset}"
 
@@ -27,20 +27,12 @@ echo -e "${green}Configuring MySQL...${reset}"
 sudo systemctl unmask mysql.service
 sudo systemctl enable mysql.service
 
-# Remove FROZEN file if it exists
-if [ -f /etc/mysql/FROZEN ]; then
-    echo -e "${yellow}Removing /etc/mysql/FROZEN to allow reconfiguration.${reset}"
-    sudo rm /etc/mysql/FROZEN
-fi
-
-# Purge MySQL if it's in a broken state
-echo -e "${green}Ensuring clean MySQL installation...${reset}"
+# Ensure MySQL installation is clean
 sudo apt remove --purge -y mysql-server mysql-client mysql-common
 sudo apt autoremove -y
 sudo rm -rf /etc/mysql /var/lib/mysql
 
 # Reinstall MySQL
-echo -e "${green}Reinstalling MySQL...${reset}"
 sudo apt install -y mysql-server
 
 # Start MySQL service
@@ -49,7 +41,7 @@ if ! sudo systemctl start mysql; then
     exit 1
 fi
 
-# Configure MySQL if service is running
+# Configure MySQL
 if sudo systemctl is-active --quiet mysql; then
     sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;"
     sudo mysql -e "CREATE DATABASE vidiq;"
@@ -65,7 +57,7 @@ sudo chown -R $USER:$USER $BASE_DIR
 sudo chmod -R 755 /home/Vidiq
 
 # Clone project from GitHub
-echo -e "${green}Cloning Vidiq project from GitHub...${reset}"
+echo -e "${green}Cloning VidiQ project from GitHub...${reset}"
 if [ -d "$BASE_DIR" ]; then
     echo -e "${green}Directory already exists, pulling latest changes...${reset}"
     git -C $BASE_DIR reset --hard
@@ -76,14 +68,17 @@ else
 fi
 chmod +x $BASE_DIR/install.sh
 
-# Create auto.db and initialize users table
+# Create SQLite database and initialize users table
 echo -e "${green}Setting up SQLite database...${reset}"
 DB_PATH="$BASE_DIR/config/auto.db"
 if [ ! -f "$DB_PATH" ]; then
     sudo mkdir -p $(dirname "$DB_PATH")
     sudo chmod -R 755 $(dirname "$DB_PATH")
     sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT);"
-    sqlite3 $DB_PATH "INSERT INTO users (username, password) VALUES ('admin', '$(openssl rand -base64 12)');"
+    DEFAULT_PASSWORD="admin123"
+    PHP_HASH=$(php -r "echo password_hash('${DEFAULT_PASSWORD}', PASSWORD_BCRYPT);")
+    sqlite3 $DB_PATH "INSERT INTO users (username, password) VALUES ('admin', '$PHP_HASH');"
+    echo -e "${green}Admin user created with default password: ${DEFAULT_PASSWORD}${reset}"
 else
     echo -e "${green}SQLite database already exists. Skipping creation.${reset}"
 fi
@@ -127,19 +122,13 @@ else
     sudo systemctl restart nginx || echo -e "${red}Failed to restart Nginx. Check configuration.${reset}"
 fi
 
-# Generate default user
-USERNAME="admin"
-PASSWORD=$(openssl rand -base64 12)
-echo -e "${green}Generating default user...${reset}"
-sqlite3 $DB_PATH "INSERT INTO users (username, password) VALUES ('$USERNAME', '$PASSWORD');"
-
 # Final message
 IP=$(hostname -I | awk '{print $1}')
 echo -e "${cyan}================${reset}"
 echo -e "${white}Thank you for installing VidiQ${reset}"
 echo -e "${cyan}================${reset}"
-echo -e "${white}Your MySQL Password: ${MYSQL_ROOT_PASSWORD}${reset}"
+echo -e "${white}MySQL Password: ${MYSQL_ROOT_PASSWORD}${reset}"
 echo -e "${white}SQLite Database Path: ${DB_PATH}${reset}"
-echo -e "${white}Username: ${USERNAME}${reset}"
-echo -e "${white}Password: ${PASSWORD}${reset}"
+echo -e "${white}Username: admin${reset}"
+echo -e "${white}Password: admin123${reset}"
 echo -e "${white}Panel URL: http://${IP}${reset}"

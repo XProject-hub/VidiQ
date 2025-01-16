@@ -1,6 +1,6 @@
 ### Features
 - Login page at `/public/index.php`
-- Admin dashboard at `/admin/dashboard/dashboard.php` with navigation for:
+- Admin dashboard at `/admin/dashboard.php` with navigation for:
   - Users
   - Media
   - Settings
