@@ -8,17 +8,13 @@ if (!isset($_SESSION['user'])) {
 $db = new SQLite3('/home/Vidiq/panel/config/auto.db');
 
 // Check if stream ID is provided
-if (!isset($_GET['id']) || empty($_GET['id'])) {
-    header('Location: /admin/streams/index.php');
-    exit;
+if (isset($_GET['id'])) {
+    $id = $_GET['id'];
+    $stmt = $db->prepare("DELETE FROM streams WHERE id = :id");
+    $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+    $stmt->execute();
 }
-
-$streamId = $_GET['id'];
-
-// Delete the stream
-$stmt = $db->prepare("DELETE FROM streams WHERE id = :id");
-$stmt->bindValue(':id', $streamId, SQLITE3_INTEGER);
-$stmt->execute();
 
 header('Location: /admin/streams/index.php');
 exit;
+?>

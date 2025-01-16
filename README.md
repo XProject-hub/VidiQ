@@ -26,3 +26,15 @@
   - Add new resellers.
   - Edit reseller details.
   - Delete resellers.
+- Streams Management:
+  - View all streams.
+  - Add new streams.
+  - Edit stream details.
+  - Delete streams.
+  - Toggle stream status (Active/Inactive).
+  - Streams Management:
+  - View all streams.
+  - Add new streams.
+  - Edit existing streams.
+  - Delete streams.
+  - Toggle stream status (Active/Inactive).

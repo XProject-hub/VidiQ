@@ -10,11 +10,13 @@ $db = new SQLite3('/home/Vidiq/panel/config/auto.db');
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'];
-    $url = $_POST['url'];
+    $source = $_POST['source'];
+    $status = isset($_POST['status']) ? 1 : 0;
 
-    $stmt = $db->prepare("INSERT INTO streams (name, url) VALUES (:name, :url)");
+    $stmt = $db->prepare("INSERT INTO streams (name, source, status) VALUES (:name, :source, :status)");
     $stmt->bindValue(':name', $name, SQLITE3_TEXT);
-    $stmt->bindValue(':url', $url, SQLITE3_TEXT);
+    $stmt->bindValue(':source', $source, SQLITE3_TEXT);
+    $stmt->bindValue(':status', $status, SQLITE3_INTEGER);
     $stmt->execute();
 
     header('Location: /admin/streams/index.php');
@@ -39,6 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <li><a href="/admin/dashboard/dashboard.php">Dashboard</a></li>
                 <li><a href="/admin/users/index.php">Users</a></li>
                 <li><a href="/admin/streams/index.php" class="active">Streams</a></li>
+                <li><a href="/admin/reseller/index.php">Resellers</a></li>
             </ul>
         </nav>
     </header>
@@ -49,8 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label for="name">Stream Name</label>
                 <input type="text" id="name" name="name" required>
 
-                <label for="url">Stream URL</label>
-                <input type="url" id="url" name="url" required>
+                <label for="source">Stream Source</label>
+                <input type="text" id="source" name="source" required>
+
+                <label for="status">
+                    <input type="checkbox" id="status" name="status"> Active
+                </label>
 
                 <button type="submit" class="button">Add Stream</button>
             </form>

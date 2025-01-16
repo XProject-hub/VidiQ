@@ -8,18 +8,15 @@ if (!isset($_SESSION['user'])) {
 $db = new SQLite3('/home/Vidiq/panel/config/auto.db');
 
 // Check if stream ID is provided
-if (!isset($_GET['id']) || empty($_GET['id'])) {
+if (!isset($_GET['id'])) {
     header('Location: /admin/streams/index.php');
     exit;
 }
 
-$streamId = $_GET['id'];
-
-// Fetch stream details
+$id = $_GET['id'];
 $stmt = $db->prepare("SELECT * FROM streams WHERE id = :id");
-$stmt->bindValue(':id', $streamId, SQLITE3_INTEGER);
-$result = $stmt->execute();
-$stream = $result->fetchArray(SQLITE3_ASSOC);
+$stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+$stream = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
 
 if (!$stream) {
     header('Location: /admin/streams/index.php');
@@ -29,13 +26,15 @@ if (!$stream) {
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = $_POST['name'];
-    $url = $_POST['url'];
+    $source = $_POST['source'];
+    $status = isset($_POST['status']) ? 1 : 0;
 
-    $updateStmt = $db->prepare("UPDATE streams SET name = :name, url = :url WHERE id = :id");
-    $updateStmt->bindValue(':name', $name, SQLITE3_TEXT);
-    $updateStmt->bindValue(':url', $url, SQLITE3_TEXT);
-    $updateStmt->bindValue(':id', $streamId, SQLITE3_INTEGER);
-    $updateStmt->execute();
+    $stmt = $db->prepare("UPDATE streams SET name = :name, source = :source, status = :status WHERE id = :id");
+    $stmt->bindValue(':name', $name, SQLITE3_TEXT);
+    $stmt->bindValue(':source', $source, SQLITE3_TEXT);
+    $stmt->bindValue(':status', $status, SQLITE3_INTEGER);
+    $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+    $stmt->execute();
 
     header('Location: /admin/streams/index.php');
     exit;
@@ -59,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <li><a href="/admin/dashboard/dashboard.php">Dashboard</a></li>
                 <li><a href="/admin/users/index.php">Users</a></li>
                 <li><a href="/admin/streams/index.php" class="active">Streams</a></li>
+                <li><a href="/admin/reseller/index.php">Resellers</a></li>
             </ul>
         </nav>
     </header>
@@ -69,10 +69,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <label for="name">Stream Name</label>
                 <input type="text" id="name" name="name" value="<?= htmlspecialchars($stream['name']) ?>" required>
 
-                <label for="url">Stream URL</label>
-                <input type="url" id="url" name="url" value="<?= htmlspecialchars($stream['url']) ?>" required>
+                <label for="source">Stream Source</label>
+                <input type="text" id="source" name="source" value="<?= htmlspecialchars($stream['source']) ?>" required>
 
-                <button type="submit" class="button">Save Changes</button>
+                <label for="status">
+                    <input type="checkbox" id="status" name="status" <?= $stream['status'] == 1 ? 'checked' : '' ?>> Active
+                </label>
+
+                <button type="submit" class="button">Update Stream</button>
             </form>
         </div>
     </main>

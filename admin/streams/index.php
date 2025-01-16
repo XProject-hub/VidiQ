@@ -28,6 +28,7 @@ $streams = $db->query("SELECT * FROM streams");
                 <li><a href="/admin/dashboard/dashboard.php">Dashboard</a></li>
                 <li><a href="/admin/users/index.php">Users</a></li>
                 <li><a href="/admin/streams/index.php" class="active">Streams</a></li>
+                <li><a href="/admin/reseller/index.php">Resellers</a></li>
             </ul>
         </nav>
     </header>
@@ -39,8 +40,9 @@ $streams = $db->query("SELECT * FROM streams");
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Stream Name</th>
-                        <th>URL</th>
+                        <th>Name</th>
+                        <th>Source</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -49,7 +51,8 @@ $streams = $db->query("SELECT * FROM streams");
                         <tr>
                             <td><?= $stream['id'] ?></td>
                             <td><?= htmlspecialchars($stream['name']) ?></td>
-                            <td><?= htmlspecialchars($stream['url']) ?></td>
+                            <td><?= htmlspecialchars($stream['source']) ?></td>
+                            <td><?= $stream['status'] == 1 ? 'Active' : 'Inactive' ?></td>
                             <td>
                                 <a href="/admin/streams/edit.php?id=<?= $stream['id'] ?>" class="button">Edit</a>
                                 <a href="/admin/streams/delete.php?id=<?= $stream['id'] ?>" class="button delete">Delete</a>

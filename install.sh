@@ -76,16 +76,20 @@ else
 fi
 chmod +x $BASE_DIR/install.sh
 
-# Create auto.db and initialize users table
+# Create auto.db and initialize tables
 echo -e "${green}Setting up SQLite database...${reset}"
 DB_PATH="$BASE_DIR/config/auto.db"
 if [ ! -f "$DB_PATH" ]; then
     sudo mkdir -p $(dirname "$DB_PATH")
     sudo chmod -R 755 $(dirname "$DB_PATH")
     sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT);"
+    sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS streams (id INTEGER PRIMARY KEY, name TEXT, url TEXT);"
+    sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS resellers (id INTEGER PRIMARY KEY, username TEXT, email TEXT, password TEXT);"
     sqlite3 $DB_PATH "INSERT INTO users (username, password) VALUES ('admin', '$(openssl rand -base64 12)');"
 else
     echo -e "${green}SQLite database already exists. Skipping creation.${reset}"
+    sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS streams (id INTEGER PRIMARY KEY, name TEXT, url TEXT);"
+    sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS resellers (id INTEGER PRIMARY KEY, username TEXT, email TEXT, password TEXT);"
 fi
 
 # Configure Nginx
@@ -101,7 +105,7 @@ NGINX_CONFIG="server {
         try_files \$uri \$uri/ /index.php?\$query_string;
     }
 
-    location ~ \.php$ {
+    location ~ \\.php$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/run/php/php8.1-fpm.sock;
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
