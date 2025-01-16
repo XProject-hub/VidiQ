@@ -6,9 +6,8 @@ if (!isset($_SESSION['user'])) {
 }
 
 $db = new SQLite3('/home/Vidiq/panel/config/auto.db');
-
-// Fetch all resellers
 $resellers = $db->query("SELECT * FROM resellers");
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -34,26 +33,30 @@ $resellers = $db->query("SELECT * FROM resellers");
     </header>
     <main>
         <div class="container">
-            <h1>Resellers</h1>
-            <a href="/admin/reseller/add.php" class="button">Add New Reseller</a>
+            <h1>Reseller Management</h1>
+            <a href="add.php" class="button">Add New Reseller</a>
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Username</th>
+                        <th>Name</th>
                         <th>Email</th>
+                        <th>Phone</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php while ($reseller = $resellers->fetchArray(SQLITE3_ASSOC)): ?>
+                    <?php while ($row = $resellers->fetchArray(SQLITE3_ASSOC)): ?>
                         <tr>
-                            <td><?= $reseller['id'] ?></td>
-                            <td><?= htmlspecialchars($reseller['username']) ?></td>
-                            <td><?= htmlspecialchars($reseller['email']) ?></td>
+                            <td><?= $row['id'] ?></td>
+                            <td><?= htmlspecialchars($row['name']) ?></td>
+                            <td><?= htmlspecialchars($row['email']) ?></td>
+                            <td><?= htmlspecialchars($row['phone']) ?></td>
+                            <td><?= $row['status'] == 1 ? 'Active' : 'Inactive' ?></td>
                             <td>
-                                <a href="/admin/reseller/edit.php?id=<?= $reseller['id'] ?>" class="button">Edit</a>
-                                <a href="/admin/reseller/delete.php?id=<?= $reseller['id'] ?>" class="button delete">Delete</a>
+                                <a href="edit.php?id=<?= $row['id'] ?>" class="button-small">Edit</a>
+                                <a href="delete.php?id=<?= $row['id'] ?>" class="button-small danger">Delete</a>
                             </td>
                         </tr>
                     <?php endwhile; ?>

@@ -7,16 +7,17 @@ if (!isset($_SESSION['user'])) {
 
 $db = new SQLite3('/home/Vidiq/panel/config/auto.db');
 
-// Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'];
+    $name = $_POST['name'];
     $email = $_POST['email'];
-    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
+    $phone = $_POST['phone'];
+    $status = isset($_POST['status']) ? 1 : 0;
 
-    $stmt = $db->prepare("INSERT INTO resellers (username, email, password) VALUES (:username, :email, :password)");
-    $stmt->bindValue(':username', $username, SQLITE3_TEXT);
+    $stmt = $db->prepare("INSERT INTO resellers (name, email, phone, status) VALUES (:name, :email, :phone, :status)");
+    $stmt->bindValue(':name', $name, SQLITE3_TEXT);
     $stmt->bindValue(':email', $email, SQLITE3_TEXT);
-    $stmt->bindValue(':password', $password, SQLITE3_TEXT);
+    $stmt->bindValue(':phone', $phone, SQLITE3_TEXT);
+    $stmt->bindValue(':status', $status, SQLITE3_INTEGER);
     $stmt->execute();
 
     header('Location: /admin/reseller/index.php');
@@ -49,14 +50,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="container">
             <h1>Add Reseller</h1>
             <form method="POST">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" required>
 
                 <label for="email">Email</label>
                 <input type="email" id="email" name="email" required>
 
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
+                <label for="phone">Phone</label>
+                <input type="text" id="phone" name="phone" required>
+
+                <label for="status">
+                    <input type="checkbox" id="status" name="status"> Active
+                </label>
 
                 <button type="submit" class="button">Add Reseller</button>
             </form>
