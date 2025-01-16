@@ -6,30 +6,25 @@ echo "   Welcome to VidiQ"
 echo "   Developed by X Project"
 echo "========================================="
 echo "This script will install the VidiQ IPTV Panel."
-echo "Please ensure you are running this as root and on Ubuntu 20 or 22."
 echo ""
 
 # Ensure the script is run as root
-if [ "$EUID" -ne 0 ]
-  then echo "Please run as root"
+if [ "$EUID" -ne 0 ]; then
+  echo "Please run as root"
   exit
 fi
 
 # Gather user input
 read -p "Enter the domain name for the VidiQ panel: " domain_name
-read -p "Enter the GitHub repository link [https://github.com/XProject-hub/VidiQ]: " repo_link
-repo_link=${repo_link:-https://github.com/XProject-hub/VidiQ}
+repo_link="https://github.com/XProject-hub/VidiQ"
 
-# Update and upgrade the system
+# Update and install dependencies
 apt-get update && apt-get upgrade -y
+apt-get install nginx python3 python3-pip php php-fpm php-mysql mariadb-server -y
 
-# Install Nginx, PHP, Python, and necessary extensions
-apt-get install nginx python3 python3-pip php php-fpm php-mysql -y
-
-# Clone the VidiQ repository
-cd /home
-mkdir vidiq
-cd vidiq
+# Clone the repository
+mkdir -p /home/vidiq
+cd /home/vidiq
 git clone $repo_link panel
 
 # Set permissions
@@ -43,7 +38,7 @@ server {
     server_name $domain_name;
 
     root /home/vidiq/panel/public;
-    index index.php index.html index.htm;
+    index login.php index.html;
 
     location / {
         try_files \$uri \$uri/ =404;
@@ -58,25 +53,24 @@ server {
 }
 EOF
 ln -s /etc/nginx/sites-available/vidiq /etc/nginx/sites-enabled/
-
-# Restart Nginx to apply the new configuration
 systemctl restart nginx
-systemctl enable nginx
 
-# Install and configure the database
-apt-get install mariadb-server -y
+# Configure MariaDB and run SQL script
 systemctl start mariadb
 systemctl enable mariadb
 
-# Secure the database installation
-mysql_secure_installation
-
-# Run the automated SQL setup
+echo "Enter the MariaDB root password:"
 mysql -u root -p < /home/vidiq/panel/scripts/db_automated.sql
 
-# Generate admin login credentials
+# Create default admin credentials
 admin_username="admin"
 admin_password=`openssl rand -base64 12`
+encrypted_password=`php -r "echo password_hash('$admin_password', PASSWORD_DEFAULT);"`
+
+mysql -u root -p -e "
+USE vidiq_db;
+INSERT INTO admins (username, password, email) VALUES ('$admin_username', '$encrypted_password', 'admin@vidiq.com');
+"
 
 # Display completion message
 echo "======================"
