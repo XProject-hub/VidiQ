@@ -21,3 +21,8 @@
   - Add new streams.
   - Edit stream details.
   - Delete streams.
+- Reseller Management:
+  - View all resellers.
+  - Add new resellers.
+  - Edit reseller details.
+  - Delete resellers.
