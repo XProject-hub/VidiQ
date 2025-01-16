@@ -37,7 +37,13 @@ sudo chmod -R 755 /home/Vidiq
 
 # Clone project from GitHub
 echo -e "${green}Cloning Vidiq project from GitHub...${reset}"
-git clone https://github.com/XProject-hub/vidiq.git $BASE_DIR
+if [ -d "$BASE_DIR" ]; then
+    echo -e "${green}Directory already exists, pulling latest changes...${reset}"
+    git -C $BASE_DIR pull
+else
+    git clone https://github.com/XProject-hub/vidiq.git $BASE_DIR
+    chmod +x $BASE_DIR/install.sh
+fi
 
 # Create auto.db and initialize users table
 echo -e "${green}Setting up SQLite database...${reset}"
@@ -70,8 +76,14 @@ NGINX_CONFIG="server {
         log_not_found off;
     }
 }"
-echo "$NGINX_CONFIG" | sudo tee /etc/nginx/sites-available/vidiq
-sudo ln -s /etc/nginx/sites-available/vidiq /etc/nginx/sites-enabled/
+NGINX_SITE_PATH="/etc/nginx/sites-available/vidiq"
+echo "$NGINX_CONFIG" | sudo tee $NGINX_SITE_PATH
+
+if [ -L /etc/nginx/sites-enabled/vidiq ]; then
+    echo -e "${green}Existing Nginx configuration detected, updating symbolic link...${reset}"
+    sudo rm /etc/nginx/sites-enabled/vidiq
+fi
+sudo ln -s $NGINX_SITE_PATH /etc/nginx/sites-enabled/
 sudo systemctl restart nginx
 
 # Generate default user
