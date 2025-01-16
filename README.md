@@ -1,16 +1,29 @@
-# VidiQ Panel
+# VidiQ IPTV Panel
 
-## Description
-The VidiQ Panel is a modern streaming panel designed to manage and distribute media content efficiently. It features a dark theme with cyan highlights and is easy to navigate.
+![VidiQ Logo](public/images/VidiQ_Logo.png)
+
+Welcome to the VidiQ IPTV Panel, an advanced solution for managing IPTV services. This panel is designed with a focus on performance, usability, and scalability.
+
+## Features
+- Live TV and VOD Streaming
+- DRM Support for content protection
+- Reseller management module
+- Admin and client dashboards
 
 ## Installation
-To install the VidiQ Panel, run the `install.sh` script from the root directory. Ensure you have root privileges.
+To install VidiQ on your server, execute the following command:
+sudo /home/vidiq/panel/scripts/install.sh
+
+Follow the on-screen instructions to complete the setup.
+
+## Configuration
+After installation, configure your VidiQ system by editing the files in the `/config` directory.
 
 ## Usage
-Access the panel through your web browser by navigating to the server's IP address or domain, followed by `/public/index.html`.
+Access the admin dashboard via your domain to manage the IPTV service.
 
-## Contributing
-Contributions to the VidiQ Panel are welcome. Please fork the repository and submit a pull request.
+## Support
+For support, contact [Your Contact Information].
 
 ## License
-VidiQ Panel is open-sourced under the MIT license.
+This project is licensed under the MIT License - see the LICENSE.md file for details.
