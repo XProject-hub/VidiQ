@@ -8,7 +8,10 @@ Welcome to the VidiQ IPTV Panel, an advanced solution for managing IPTV services
 - Live TV and VOD Streaming
 - DRM Support for content protection
 - Reseller management module
-- Admin and client dashboards
+- Comprehensive admin dashboard with:
+  - Server status (Main servers and Load balancers)
+  - Real-time geographic usage visualization
+  - Detailed statistics on clients, channels, movies, and series
 
 ## Installation
 To install VidiQ on your server, execute the following command:
