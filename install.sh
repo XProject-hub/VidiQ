@@ -29,17 +29,24 @@ sudo systemctl enable mysql.service
 
 # Remove FROZEN file if it exists
 if [ -f /etc/mysql/FROZEN ]; then
-    echo -e "${red}Removing /etc/mysql/FROZEN to allow reconfiguration.${reset}"
+    echo -e "${yellow}Removing /etc/mysql/FROZEN to allow reconfiguration.${reset}"
     sudo rm /etc/mysql/FROZEN
 fi
 
-# Attempt to start MySQL
+# Purge MySQL if it's in a broken state
+echo -e "${green}Ensuring clean MySQL installation...${reset}"
+sudo apt remove --purge -y mysql-server mysql-client mysql-common
+sudo apt autoremove -y
+sudo rm -rf /etc/mysql /var/lib/mysql
+
+# Reinstall MySQL
+echo -e "${green}Reinstalling MySQL...${reset}"
+sudo apt install -y mysql-server
+
+# Start MySQL service
 if ! sudo systemctl start mysql; then
-    echo -e "${red}MySQL service failed to start. Attempting reinstallation...${reset}"
-    sudo apt remove --purge mysql-server -y
-    sudo apt autoremove -y
-    sudo apt install mysql-server -y
-    sudo systemctl start mysql || { echo -e "${red}MySQL service failed after reinstallation. Check logs.${reset}"; exit 1; }
+    echo -e "${red}MySQL service failed to start. Check logs.${reset}"
+    exit 1
 fi
 
 # Configure MySQL if service is running

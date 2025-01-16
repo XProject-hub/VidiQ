@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($user && password_verify($password, $user['password'])) {
         $_SESSION['user'] = $username;
-        header('Location: dashboard.php');
+        header('Location: /admin/dashboard/dashboard.php');
         exit;
     } else {
         $error = "Invalid username or password";
@@ -46,50 +46,80 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             justify-content: center;
             align-items: center;
             height: 100vh;
+            overflow: hidden;
         }
+
         .login-container {
             background-color: #2c2c2c;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0px 0px 10px #00ffff;
-            width: 300px;
-        }
-        .login-container h1 {
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0px 0px 30px #00ffff;
+            width: 400px;
             text-align: center;
-            color: #00ffff;
+            animation: fadeIn 1s ease-in-out;
         }
+
+        .login-container img {
+            width: 150px;
+            margin-bottom: 20px;
+        }
+
         .login-container input[type="text"], 
         .login-container input[type="password"] {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
+            width: calc(100% - 32px);
+            padding: 15px;
+            margin: 15px 0;
             border: 1px solid #444;
-            border-radius: 4px;
+            border-radius: 6px;
             background-color: #333;
             color: #fff;
+            box-sizing: border-box;
         }
+
         .login-container button {
             width: 100%;
-            padding: 10px;
+            padding: 15px;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
             background-color: #00ffff;
             color: #000;
             font-weight: bold;
             cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
         }
+
         .login-container button:hover {
             background-color: #008b8b;
+            transform: scale(1.05);
         }
+
         .error {
             color: #ff4d4d;
-            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .login-container {
+                width: 90%;
+                padding: 30px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="login-container">
-        <h1>VidiQ Login</h1>
+        <img src="/images/logo.png" alt="VidiQ Logo">
         <?php if (isset($error)): ?>
             <p class="error"><?= htmlspecialchars($error) ?></p>
         <?php endif; ?>
