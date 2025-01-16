@@ -16,3 +16,8 @@
   - Add new users.
   - Edit user details.
   - Delete users.
+  - Streams Management:
+  - View all streams.
+  - Add new streams.
+  - Edit stream details.
+  - Delete streams.
