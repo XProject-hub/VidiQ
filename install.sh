@@ -21,11 +21,12 @@ sudo apt install -y nginx mysql-server php-fpm php-mysql python3 python3-pip git
 # Install required PHP and Python libraries
 echo -e "${green}Installing required PHP and Python libraries...${reset}"
 sudo apt install -y php-curl php-xml php-mbstring
-pip3 install flask mysql-connector-python
+pip3 install flask mysql-connector-python --no-cache-dir
 
 # Configure MySQL
 MYSQL_ROOT_PASSWORD=$(openssl rand -base64 12)
 echo -e "${green}Configuring MySQL...${reset}"
+sudo systemctl start mysql || sudo systemctl restart mysql
 sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;"
 sudo mysql -e "CREATE DATABASE vidiq;"
 
@@ -39,11 +40,13 @@ sudo chmod -R 755 /home/Vidiq
 echo -e "${green}Cloning Vidiq project from GitHub...${reset}"
 if [ -d "$BASE_DIR" ]; then
     echo -e "${green}Directory already exists, pulling latest changes...${reset}"
+    git -C $BASE_DIR reset --hard
+    git -C $BASE_DIR clean -fd
     git -C $BASE_DIR pull
 else
     git clone https://github.com/XProject-hub/vidiq.git $BASE_DIR
-    chmod +x $BASE_DIR/install.sh
 fi
+chmod +x $BASE_DIR/install.sh
 
 # Create auto.db and initialize users table
 echo -e "${green}Setting up SQLite database...${reset}"
@@ -84,7 +87,7 @@ if [ -L /etc/nginx/sites-enabled/vidiq ]; then
     sudo rm /etc/nginx/sites-enabled/vidiq
 fi
 sudo ln -s $NGINX_SITE_PATH /etc/nginx/sites-enabled/
-sudo systemctl restart nginx
+sudo systemctl restart nginx || echo -e "${red}Failed to restart Nginx. Check configuration.${reset}"
 
 # Generate default user
 USERNAME="admin"
