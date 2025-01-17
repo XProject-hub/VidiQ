@@ -87,16 +87,45 @@ echo "{\"ip\": \"$MAIN_SERVER_IP\", \"name\": \"$MAIN_SERVER_NAME\"}" > $CONFIG_
 echo -e "${green}Main server details saved at $CONFIG_DIR/main_server.json${reset}"
 
 # Create auto.db and initialize users table
+# Set up SQLite database
 echo -e "${green}Setting up SQLite database...${reset}"
 DB_PATH="$BASE_DIR/config/auto.db"
+
 if [ ! -f "$DB_PATH" ]; then
+    # Create directory and set permissions
     sudo mkdir -p $(dirname "$DB_PATH")
     sudo chmod -R 755 $(dirname "$DB_PATH")
-    sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT);"
-    sqlite3 $DB_PATH "INSERT INTO users (username, password) VALUES ('admin', '$(openssl rand -base64 12)');"
+    
+    # Initialize SQLite database and create users table
+    sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY, 
+        username TEXT, 
+        password TEXT
+    );"
+    
+    # Insert admin user with a random password
+    ADMIN_PASSWORD=$(openssl rand -base64 12)
+    sqlite3 $DB_PATH "INSERT INTO users (username, password) VALUES ('admin', '$ADMIN_PASSWORD');"
+    echo -e "${green}Admin user created with random password: ${ADMIN_PASSWORD}${reset}"
+
+    # Create server_details table
+    sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS server_details (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        server_name TEXT NOT NULL,
+        connections INT NOT NULL,
+        live_streams INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );"
+    
+    # Insert default data for Main Server
+    sqlite3 $DB_PATH "INSERT INTO server_details (server_name, connections, live_streams)
+    VALUES ('Main Server', 100, 80);"
+    
+    echo -e "${green}Database initialized with server details.${reset}"
 else
     echo -e "${green}SQLite database already exists. Skipping creation.${reset}"
 fi
+
 
 # Configure Nginx
 echo -e "${green}Configuring Nginx...${reset}"

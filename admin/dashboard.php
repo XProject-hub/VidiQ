@@ -15,6 +15,7 @@ if (!isset($_SESSION['user'])) {
     <title>Dashboard - VidiQ</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="/js/dashboard.js"></script>
     <style>
   
     </style>
@@ -289,32 +290,83 @@ if (!isset($_SESSION['user'])) {
         </div>
     </section>
 <section class="servers">
-    <div class="server-card">
-        <h4>Server 1</h4>
-        <p>Connections: 100</p>
-        <p>Live Streams: 80</p>
-        <p>CPU Usage:</p>
-        <div class="progress-bar">
-            <span style="width: 60%;"></span>
-        </div>
-        <p>RAM Usage:</p>
-        <div class="progress-bar">
-            <span style="width: 75%;"></span>
-        </div>
+<div id="main-server-card" class="server-card">
+    <h4>Main Server</h4>
+    <div class="server-details">
+        <p>Connections: <span id="server-connections">0</span></p>
+        <p>Live Streams: <span id="server-live-streams">0</span></p>
     </div>
-    <div class="server-card">
-        <h4>Server 2</h4>
-        <p>Connections: 200</p>
-        <p>Live Streams: 150</p>
-        <p>CPU Usage:</p>
-        <div class="progress-bar">
-            <span style="width: 40%;"></span>
-        </div>
-        <p>RAM Usage:</p>
-        <div class="progress-bar">
-            <span style="width: 50%;"></span>
-        </div>
+    <!-- Circular Progress Bars -->
+    <div class="progress-circle">
+        <svg height="100" width="100">
+            <circle cx="50" cy="50" r="45" stroke="#444" stroke-width="10" fill="none"></circle>
+            <circle
+                id="cpu-usage"
+                cx="50"
+                cy="50"
+                r="45"
+                stroke="#00ffff"
+                stroke-width="10"
+                fill="none"
+                style="stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 0.35s;"
+            ></circle>
+        </svg>
+        <div class="circle-label">CPU: <span id="cpu-usage-value">0%</span></div>
     </div>
+
+    <div class="progress-circle">
+        <svg height="100" width="100">
+            <circle cx="50" cy="50" r="45" stroke="#444" stroke-width="10" fill="none"></circle>
+            <circle
+                id="ram-usage"
+                cx="50"
+                cy="50"
+                r="45"
+                stroke="#00ffff"
+                stroke-width="10"
+                fill="none"
+                style="stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 0.35s;"
+            ></circle>
+        </svg>
+        <div class="circle-label">RAM: <span id="ram-usage-value">0%</span></div>
+    </div>
+
+    <div class="progress-circle">
+        <svg height="100" width="100">
+            <circle cx="50" cy="50" r="45" stroke="#444" stroke-width="10" fill="none"></circle>
+            <circle
+                id="bandwidth-input"
+                cx="50"
+                cy="50"
+                r="45"
+                stroke="#00ffff"
+                stroke-width="10"
+                fill="none"
+                style="stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 0.35s;"
+            ></circle>
+        </svg>
+        <div class="circle-label">Input: <span id="bandwidth-input-value">0%</span></div>
+    </div>
+
+    <div class="progress-circle">
+        <svg height="100" width="100">
+            <circle cx="50" cy="50" r="45" stroke="#444" stroke-width="10" fill="none"></circle>
+            <circle
+                id="bandwidth-output"
+                cx="50"
+                cy="50"
+                r="45"
+                stroke="#00ffff"
+                stroke-width="10"
+                fill="none"
+                style="stroke-dasharray: 283; stroke-dashoffset: 283; transition: stroke-dashoffset 0.35s;"
+            ></circle>
+        </svg>
+        <div class="circle-label">Output: <span id="bandwidth-output-value">0%</span></div>
+    </div>
+</div>
+
+
 </section>
 </main>
 </body>
