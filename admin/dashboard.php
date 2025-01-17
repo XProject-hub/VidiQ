@@ -158,28 +158,132 @@ if (!isset($_SESSION['user'])) {
     margin-right: 10px;
 }
 
+          body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #1b1b1b;
+            color: #fff;
         }
-        main {
-            padding: 20px;
+        header {
+            background-color: #2c2c2c;
+            padding: 10px;
             text-align: center;
         }
-        .container {
-            margin-top: 50px;
+        header img {
+            height: 50px;
         }
-        .container h1 {
-            font-size: 2.5rem;
-            color: #00ffff;
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            padding: 20px;
         }
-        .container p {
+        .stat-card {
+            border-radius: 10px;
+            text-align: center;
+            padding: 15px;
+            position: relative;
+            overflow: hidden;
+            animation: fadeIn 1s ease-in-out;
+        }
+        .stat-card i {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        .stat-card h3 {
+            margin: 0;
             font-size: 1.2rem;
-            color: #cccccc;
+        }
+        .stat-card p {
+            margin: 5px 0 0 0;
+            font-size: 0.9rem;
+            color: #fff;
+        }
+        .servers {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+        }
+        .server-card {
+            background-color: #2c2c2c;
+            border-radius: 10px;
+            padding: 15px;
+            color: #00ffff;
+            animation: slideIn 1s ease-in-out;
+        }
+        .server-card h4 {
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+            color: #fff;
+        }
+        .server-stats {
+            margin-bottom: 10px;
+        }
+        .server-stats span {
+            display: inline-block;
+            width: 50%;
+            font-size: 0.85rem;
+        }
+        .progress-bar {
+            height: 6px;
+            background-color: #444;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .progress-bar span {
+            display: block;
+            height: 100%;
+            background: linear-gradient(90deg, #00ffff, #00bcd4);
+            transition: width 0.3s ease-in-out;
+        }
+        /* Card colors */
+        .stat-card.online-users {
+            background-color: #4caf50; /* Green */
+        }
+        .stat-card.open-connections {
+            background-color: #2196f3; /* Blue */
+        }
+        .stat-card.total-input {
+            background-color: #ff5722; /* Orange */
+        }
+        .stat-card.total-output {
+            background-color: #e91e63; /* Pink */
+        }
+        .stat-card.online-streams {
+            background-color: #9c27b0; /* Purple */
+        }
+        .stat-card.offline-streams {
+            background-color: #ff9800; /* Amber */
+        }
+              }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
     </style>
+
 </head>
 <body>
 <header>
     <div class="logo">
-        <img src="/public/images/logo.png" alt="VidiQ Logo">
+        <img src="/images/logo.png" alt="VidiQ Logo">
     </div>
     <nav class="navbar">
         <ul>
@@ -373,10 +477,96 @@ if (!isset($_SESSION['user'])) {
 </div>
 </header>
 <main>
-    <div class="container">
-        <h1>Welcome to the Admin Dashboard</h1>
-        <p>Manage your panel using the menu above.</p>
-    </div>
+    <section class="dashboard-stats">
+        <div class="stat-card online-users">
+            <i class="fas fa-user"></i>
+            <h3 id="online-users">0</h3>
+            <p>Online Users</p>
+        </div>
+        <div class="stat-card open-connections">
+            <i class="fas fa-network-wired"></i>
+            <h3 id="open-connections">0</h3>
+            <p>Open Connections</p>
+        </div>
+        <div class="stat-card total-input">
+            <i class="fas fa-download"></i>
+            <h3 id="total-input">0 Mbps</h3>
+            <p>Total Input</p>
+        </div>
+        <div class="stat-card total-output">
+            <i class="fas fa-upload"></i>
+            <h3 id="total-output">0 Mbps</h3>
+            <p>Total Output</p>
+        </div>
+        <div class="stat-card online-streams">
+            <i class="fas fa-play"></i>
+            <h3 id="online-streams">0</h3>
+            <p>Online Streams</p>
+        </div>
+        <div class="stat-card offline-streams">
+            <i class="fas fa-stop"></i>
+            <h3 id="offline-streams">0</h3>
+            <p>Offline Streams</p>
+        </div>
+    </section>
+    <section class="servers" id="servers">
+        <!-- Dynamically populated server cards -->
+    </section>
 </main>
+<script>
+    function fetchStats() {
+        fetch('/api/get-dashboard-stats.php')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('online-users').innerText = data.onlineUsers;
+                document.getElementById('open-connections').innerText = data.openConnections;
+                document.getElementById('total-input').innerText = `${data.totalInput} Mbps`;
+                document.getElementById('total-output').innerText = `${data.totalOutput} Mbps`;
+                document.getElementById('online-streams').innerText = data.onlineStreams;
+                document.getElementById('offline-streams').innerText = data.offlineStreams;
+            });
+
+        fetch('/api/get-server-stats.php')
+            .then(response => response.json())
+            .then(data => {
+                const serversContainer = document.getElementById('servers');
+                serversContainer.innerHTML = '';
+                data.servers.forEach(server => {
+                    serversContainer.innerHTML += `
+                        <div class="server-card">
+                            <h4>${server.name} - ${server.ip}</h4>
+                            <div class="server-stats">
+                                <span>Connections: ${server.connections}</span>
+                                <span>Users: ${server.users}</span>
+                            </div>
+                            <div class="server-stats">
+                                <span>Live Streams: ${server.streamsLive}</span>
+                                <span>Offline Streams: ${server.streamsOff}</span>
+                            </div>
+                            <div class="server-stats">
+                                <span>Input: ${server.input}</span>
+                                <span>Output: ${server.output}</span>
+                            </div>
+                            <div class="server-stats">
+                                <span>CPU Usage:</span>
+                                <div class="progress-bar"><span style="width: ${server.cpu}%"></span></div>
+                            </div>
+                            <div class="server-stats">
+                                <span>RAM Usage:</span>
+                                <div class="progress-bar"><span style="width: ${server.ram}%"></span></div>
+                            </div>
+                            <div class="server-stats">
+                                <span>Bandwidth:</span>
+                                <div class="progress-bar"><span style="width: ${server.bandwidth}%"></span></div>
+                            </div>
+                        </div>
+                    `;
+                });
+            });
+    }
+
+    setInterval(fetchStats, 5000);
+    window.onload = fetchStats;
+</script>
 </body>
 </html>
