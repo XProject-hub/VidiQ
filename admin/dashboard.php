@@ -13,272 +13,51 @@ if (!isset($_SESSION['user'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - VidiQ</title>
-    <link rel="stylesheet" href="/public/css/style.css">
+    <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #1b1b1b;
-            color: #00ffff;
-        }
-        header {
-            background-color: #2c2c2c;
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .logo img {
-            height: 40px;
-        }
-        .navbar {
-            display: flex;
-            align-items: center;
-        }
-        .navbar ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-        }
-        .navbar ul li {
-            position: relative;
-        }
-        .navbar ul li a {
-            text-decoration: none;
-            color: #00ffff;
-            padding: 10px 15px;
-            display: block;
-        }
-        .navbar ul li a:hover {
-            background-color: #008b8b;
-            color: #fff;
-        }
-        .navbar ul li .dropdown-menu {
-            display: none;
-            position: absolute;
-            background-color: #2c2c2c;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            min-width: 200px;
-            z-index: 1000;
-        }
-        .navbar ul li .dropdown-menu li {
-            position: relative;
-        }
-        .navbar ul li .dropdown-menu li a {
-            padding: 10px 15px;
-        }
-        .navbar ul li:hover > .dropdown-menu {
-            display: block;
-        }
-        .navbar ul li .dropdown-menu .dropdown-submenu {
-            position: relative;
-        }
-        .navbar ul li .dropdown-menu .dropdown-submenu:hover > .dropdown-menu {
-            display: block;
-            left: 100%;
-            top: 0;
-        }
-        .navbar ul li .dropdown-menu .dropdown-submenu .dropdown-menu {
-            display: none;
-            position: absolute;
-            background-color: #2c2c2c;
-            top: 0;
-            left: 100%;
-            min-width: 200px;
-        }
- .user-profile {
-    position: relative;
-    display: flex;
-    align-items: center;
-    padding: 10px 15px;
-    cursor: pointer;
-    color: #00ffff;
-}
-
-.user-profile img {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    margin-right: 10px;
-}
-
-.user-profile span {
-    font-size: 0.9rem;
-    font-weight: bold;
-    color: #00ffff;
-}
-
-.user-profile:hover .dropdown-menu {
-    display: block;
-}
-
-.user-profile .dropdown-menu {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: 40px;
-    background-color: #2c2c2c;
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    min-width: 200px;
-    z-index: 1000;
-    border: 1px solid #008b8b;
-    border-radius: 5px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.user-profile .dropdown-menu li {
-    border-bottom: 1px solid #333;
-}
-
-.user-profile .dropdown-menu li:last-child {
-    border-bottom: none;
-}
-
-.user-profile .dropdown-menu li a {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    padding: 10px 15px;
-    color: #00ffff;
-    font-size: 0.9rem;
-}
-
-.user-profile .dropdown-menu li a:hover {
-    background-color: #008b8b;
-    color: #ffffff;
-}
-
-.user-profile .dropdown-menu li a i {
-    margin-right: 10px;
-}
-
-          body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background-color: #1b1b1b;
-            color: #fff;
-        }
-        header {
-            background-color: #2c2c2c;
-            padding: 10px;
-            text-align: center;
-        }
-        header img {
-            height: 50px;
-        }
-        .dashboard-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
-            padding: 20px;
-        }
-        .stat-card {
-            border-radius: 10px;
-            text-align: center;
-            padding: 15px;
-            position: relative;
-            overflow: hidden;
-            animation: fadeIn 1s ease-in-out;
-        }
-        .stat-card i {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-            color: #fff;
-        }
-        .stat-card h3 {
-            margin: 0;
-            font-size: 1.2rem;
-        }
-        .stat-card p {
-            margin: 5px 0 0 0;
-            font-size: 0.9rem;
-            color: #fff;
-        }
-        .servers {
-            padding: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 15px;
-        }
-        .server-card {
-            background-color: #2c2c2c;
-            border-radius: 10px;
-            padding: 15px;
-            color: #00ffff;
-            animation: slideIn 1s ease-in-out;
-        }
-        .server-card h4 {
-            margin: 0 0 10px 0;
-            font-size: 1rem;
-            color: #fff;
-        }
-        .server-stats {
-            margin-bottom: 10px;
-        }
-        .server-stats span {
-            display: inline-block;
-            width: 50%;
-            font-size: 0.85rem;
-        }
-        .progress-bar {
-            height: 6px;
-            background-color: #444;
-            border-radius: 3px;
-            overflow: hidden;
-            margin-top: 5px;
-        }
-        .progress-bar span {
-            display: block;
-            height: 100%;
-            background: linear-gradient(90deg, #00ffff, #00bcd4);
-            transition: width 0.3s ease-in-out;
-        }
-        /* Card colors */
-        .stat-card.online-users {
-            background-color: #4caf50; /* Green */
-        }
-        .stat-card.open-connections {
-            background-color: #2196f3; /* Blue */
-        }
-        .stat-card.total-input {
-            background-color: #ff5722; /* Orange */
-        }
-        .stat-card.total-output {
-            background-color: #e91e63; /* Pink */
-        }
-        .stat-card.online-streams {
-            background-color: #9c27b0; /* Purple */
-        }
-        .stat-card.offline-streams {
-            background-color: #ff9800; /* Amber */
-        }
-              }
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-        @keyframes slideIn {
-            from {
-                transform: translateY(10px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
+  
     </style>
+  <script>
+        // Fetch server details including CPU, RAM, bandwidth, users, streams, etc.
+        function fetchServerDetails() {
+            fetch('/api/get-server-stats.php')
+                .then(response => response.json())
+                .then(data => {
+                    const serversContainer = document.getElementById('servers');
+                    serversContainer.innerHTML = ''; // Clear the current servers
+                    data.servers.forEach(server => {
+                        serversContainer.innerHTML += `
+                            <div class="server-card">
+                                <h4>${server.name} - ${server.ip}</h4>
+                                <div class="stats">
+                                    <span><strong>Connections:</strong> ${server.connections}</span>
+                                    <span><strong>Users:</strong> ${server.users}</span>
+                                    <span><strong>Live Streams:</strong> ${server.streamsLive}</span>
+                                    <span><strong>Offline Streams:</strong> ${server.streamsOff}</span>
+                                    <span><strong>Input:</strong> ${server.input} Mbps</span>
+                                    <span><strong>Output:</strong> ${server.output} Mbps</span>
+                                    <span><strong>CPU Usage:</strong></span>
+                                    <div class="progress-bar">
+                                        <span style="width: ${server.cpu}%"></span>
+                                    </div>
+                                    <span><strong>RAM Usage:</strong></span>
+                                    <div class="progress-bar">
+                                        <span style="width: ${server.ram}%"></span>
+                                    </div>
+                                    <span><strong>Bandwidth:</strong> ${server.bandwidth} Mbps</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                })
+                .catch(error => console.error('Error fetching server stats:', error));
+        }
 
+        // Fetch stats periodically
+        setInterval(fetchServerDetails, 5000); // Update every 5 seconds
+        window.onload = fetchServerDetails;
+    </script>
 </head>
 <body>
 <header>
@@ -509,64 +288,34 @@ if (!isset($_SESSION['user'])) {
             <p>Offline Streams</p>
         </div>
     </section>
-    <section class="servers" id="servers">
-        <!-- Dynamically populated server cards -->
-    </section>
+<section class="servers">
+    <div class="server-card">
+        <h4>Server 1</h4>
+        <p>Connections: 100</p>
+        <p>Live Streams: 80</p>
+        <p>CPU Usage:</p>
+        <div class="progress-bar">
+            <span style="width: 60%;"></span>
+        </div>
+        <p>RAM Usage:</p>
+        <div class="progress-bar">
+            <span style="width: 75%;"></span>
+        </div>
+    </div>
+    <div class="server-card">
+        <h4>Server 2</h4>
+        <p>Connections: 200</p>
+        <p>Live Streams: 150</p>
+        <p>CPU Usage:</p>
+        <div class="progress-bar">
+            <span style="width: 40%;"></span>
+        </div>
+        <p>RAM Usage:</p>
+        <div class="progress-bar">
+            <span style="width: 50%;"></span>
+        </div>
+    </div>
+</section>
 </main>
-<script>
-    function fetchStats() {
-        fetch('/api/get-dashboard-stats.php')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('online-users').innerText = data.onlineUsers;
-                document.getElementById('open-connections').innerText = data.openConnections;
-                document.getElementById('total-input').innerText = `${data.totalInput} Mbps`;
-                document.getElementById('total-output').innerText = `${data.totalOutput} Mbps`;
-                document.getElementById('online-streams').innerText = data.onlineStreams;
-                document.getElementById('offline-streams').innerText = data.offlineStreams;
-            });
-
-        fetch('/api/get-server-stats.php')
-            .then(response => response.json())
-            .then(data => {
-                const serversContainer = document.getElementById('servers');
-                serversContainer.innerHTML = '';
-                data.servers.forEach(server => {
-                    serversContainer.innerHTML += `
-                        <div class="server-card">
-                            <h4>${server.name} - ${server.ip}</h4>
-                            <div class="server-stats">
-                                <span>Connections: ${server.connections}</span>
-                                <span>Users: ${server.users}</span>
-                            </div>
-                            <div class="server-stats">
-                                <span>Live Streams: ${server.streamsLive}</span>
-                                <span>Offline Streams: ${server.streamsOff}</span>
-                            </div>
-                            <div class="server-stats">
-                                <span>Input: ${server.input}</span>
-                                <span>Output: ${server.output}</span>
-                            </div>
-                            <div class="server-stats">
-                                <span>CPU Usage:</span>
-                                <div class="progress-bar"><span style="width: ${server.cpu}%"></span></div>
-                            </div>
-                            <div class="server-stats">
-                                <span>RAM Usage:</span>
-                                <div class="progress-bar"><span style="width: ${server.ram}%"></span></div>
-                            </div>
-                            <div class="server-stats">
-                                <span>Bandwidth:</span>
-                                <div class="progress-bar"><span style="width: ${server.bandwidth}%"></span></div>
-                            </div>
-                        </div>
-                    `;
-                });
-            });
-    }
-
-    setInterval(fetchStats, 5000);
-    window.onload = fetchStats;
-</script>
 </body>
 </html>

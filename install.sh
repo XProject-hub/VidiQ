@@ -10,7 +10,7 @@ reset="\033[0m"
 # Banner
 clear
 echo -e "${cyan}================${reset}"
-echo -e "${white}Welcome to Vidiq${reset}"
+echo -e "${white}Welcome to VidiQ${reset}"
 echo -e "${white}Developed by X Project${reset}"
 echo -e "${cyan}================${reset}"
 
@@ -59,13 +59,13 @@ else
 fi
 
 # Set up web directory
-BASE_DIR="/home/Vidiq/panel"
+BASE_DIR="/home/VidiQ/panel"
 sudo mkdir -p $BASE_DIR/config
 sudo chown -R $USER:$USER $BASE_DIR
-sudo chmod -R 755 /home/Vidiq
+sudo chmod -R 755 /home/VidiQ
 
 # Clone project from GitHub
-echo -e "${green}Cloning Vidiq project from GitHub...${reset}"
+echo -e "${green}Cloning VidiQ project from GitHub...${reset}"
 if [ -d "$BASE_DIR" ]; then
     echo -e "${green}Directory already exists, pulling latest changes...${reset}"
     git -C $BASE_DIR reset --hard
@@ -75,6 +75,16 @@ else
     git clone https://github.com/XProject-hub/vidiq.git $BASE_DIR
 fi
 chmod +x $BASE_DIR/install.sh
+
+# Save Main Server Information
+echo -e "${green}Saving main server details...${reset}"
+MAIN_SERVER_IP=$(hostname -I | awk '{print $1}')
+MAIN_SERVER_NAME=$(hostname)
+CONFIG_DIR="$BASE_DIR/config"
+
+mkdir -p $CONFIG_DIR
+echo "{\"ip\": \"$MAIN_SERVER_IP\", \"name\": \"$MAIN_SERVER_NAME\"}" > $CONFIG_DIR/main_server.json
+echo -e "${green}Main server details saved at $CONFIG_DIR/main_server.json${reset}"
 
 # Create auto.db and initialize users table
 echo -e "${green}Setting up SQLite database...${reset}"
@@ -94,20 +104,20 @@ NGINX_CONFIG="server {
     listen 80;
     server_name _;
 
-    root /home/Vidiq/panel/public;
+    root /home/VidiQ/panel/public;
     index index.php index.html;
 
     location / {
-        try_files $uri $uri/ /index.php?$query_string;
+        try_files \$uri \$uri/ /index.php?\$query_string;
     }
 
     location /admin/ {
-        alias /home/Vidiq/panel/admin/;
+        alias /home/VidiQ/panel/admin/;
         index dashboard.php;
         location ~ \.php$ {
             include snippets/fastcgi-php.conf;
             fastcgi_pass unix:/run/php/php8.1-fpm.sock;
-            fastcgi_param SCRIPT_FILENAME $request_filename;
+            fastcgi_param SCRIPT_FILENAME \$request_filename;
             include fastcgi_params;
         }
     }
@@ -115,7 +125,7 @@ NGINX_CONFIG="server {
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/run/php/php8.1-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
         include fastcgi_params;
     }
 
