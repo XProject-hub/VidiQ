@@ -38,3 +38,26 @@
   - Edit existing streams.
   - Delete streams.
   - Toggle stream status (Active/Inactive).
+
+  # Project Name: [Your Project Name]
+
+## Description
+Brief description of the project, e.g.:
+- An interactive IPTV dashboard with server stats, user management, and advanced analytics.
+- Real-time updates for CPU, RAM, bandwidth, and server connections.
+
+## Features
+- **Dashboard**: Real-time stats with circular progress bars.
+- **User Management**: Add, edit, and manage user accounts.
+- **Server Stats**: Fetch and display server resource usage.
+- **Responsive Design**: Fully responsive UI/UX.
+
+## Technologies Used
+- **Frontend**: HTML, CSS, JavaScript
+- **Backend**: PHP, SQLite
+- **APIs**: Custom-built API for server usage stats.
+
+## Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/YourUsername/YourRepository.git
