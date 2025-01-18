@@ -16,15 +16,17 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(data => {
                 userTableBody.innerHTML = '';
                 data.forEach(user => {
+                    const buttons = user.role !== 'Admin' ? `
+                        <button class="btn btn-edit" data-id="${user.id}" data-username="${user.username}" data-email="${user.email}" data-role="${user.role}">Edit</button>
+                        <button class="btn btn-delete" data-id="${user.id}">Delete</button>
+                    ` : '<span>No actions allowed</span>';
+
                     userTableBody.innerHTML += `
                         <tr>
                             <td>${user.username}</td>
                             <td>${user.email}</td>
                             <td>${user.role}</td>
-                            <td>
-                                <button class="btn btn-edit" data-id="${user.id}" data-username="${user.username}" data-email="${user.email}" data-role="${user.role}">Edit</button>
-                                <button class="btn btn-delete" data-id="${user.id}">Delete</button>
-                            </td>
+                            <td>${buttons}</td>
                         </tr>
                     `;
                 });
@@ -77,7 +79,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Add User Button Click
-    addUserBtn.addEventListener('click', () => showModal(false));
+    addUserBtn.addEventListener('click', () => {
+        const username = prompt('Enter username:');
+        const email = prompt('Enter email:');
+        const password = prompt('Enter password:');
+        const role = prompt('Enter role (Admin, Editor, Viewer):');
+
+        fetch(apiEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, email, password, role })
+        }).then(() => fetchUsers());
+    });
 
     // Close Modal Button
     closeModal.addEventListener('click', hideModal);

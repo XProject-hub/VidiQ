@@ -5,6 +5,20 @@ session_start();
 if (!isset($_SESSION['user'])) {
     header('Location: /index.php');
     exit;
+
+    require_once '../config/database.php';
+
+// Fetch the user's role from the database
+$stmt = $db->prepare("SELECT role FROM users WHERE id = ?");
+$stmt->execute([$_SESSION['user_id']]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$user) {
+    echo "User not found.";
+    exit;
+}
+
+$role = $user['role'];
 }
 ?>
 <!DOCTYPE html>

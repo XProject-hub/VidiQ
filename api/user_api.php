@@ -1,20 +1,41 @@
 <?php
-require_once '../config/database.php'; // Database configuration file
+require_once '../config/database.php';
+session_start();
 
 header('Content-Type: application/json');
 
-// Fetch the request method
+// Fetch the request method and user's role
 $method = $_SERVER['REQUEST_METHOD'];
 
-try {
-    // Ensure database connection exists
-    if (!isset($db)) {
-        $db = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8", $username, $password);
-        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    }
+// Ensure user is authenticated
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(401);
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+    exit;
+}
 
+// Fetch the user's role from the database
+$stmt = $db->prepare("SELECT role FROM users WHERE id = ?");
+$stmt->execute([$_SESSION['user_id']]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$user) {
+    http_response_code(401);
+    echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
+    exit;
+}
+
+$role = $user['role'];
+
+try {
     switch ($method) {
         case 'GET': // Fetch all users
+            if ($role === 'Viewer') {
+                echo json_encode(['status' => 'error', 'message' => 'Access denied']);
+                http_response_code(403);
+                exit;
+            }
+
             $query = "SELECT id, username, email, role, created_at FROM users";
             $stmt = $db->query($query);
             $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -22,11 +43,15 @@ try {
             break;
 
         case 'POST': // Add a new user
-            $data = json_decode(file_get_contents('php://input'), true);
+            if ($role !== 'Admin') {
+                echo json_encode(['status' => 'error', 'message' => 'Access denied']);
+                http_response_code(403);
+                exit;
+            }
 
-            // Validate required fields
-            if (empty($data['username']) || empty($data['email']) || empty($data['password']) || empty($data['role'])) {
-                echo json_encode(['status' => 'error', 'message' => 'All fields are required']);
+            $data = json_decode(file_get_contents('php://input'), true);
+            if (!isset($data['username'], $data['email'], $data['password'], $data['role'])) {
+                echo json_encode(['status' => 'error', 'message' => 'Missing fields']);
                 exit;
             }
 
@@ -37,15 +62,20 @@ try {
                 password_hash($data['password'], PASSWORD_BCRYPT),
                 $data['role']
             ]);
+
             echo json_encode(['status' => 'success', 'message' => 'User created successfully']);
             break;
 
-        case 'PUT': // Update an existing user
-            parse_str(file_get_contents('php://input'), $_PUT);
+        case 'PUT': // Update user details
+            if ($role !== 'Admin') {
+                echo json_encode(['status' => 'error', 'message' => 'Access denied']);
+                http_response_code(403);
+                exit;
+            }
 
-            // Validate required fields
-            if (empty($_PUT['id']) || empty($_PUT['email']) || empty($_PUT['password']) || empty($_PUT['role'])) {
-                echo json_encode(['status' => 'error', 'message' => 'All fields are required']);
+            parse_str(file_get_contents('php://input'), $_PUT);
+            if (!isset($_PUT['id'], $_PUT['email'], $_PUT['password'], $_PUT['role'])) {
+                echo json_encode(['status' => 'error', 'message' => 'Missing fields']);
                 exit;
             }
 
@@ -56,19 +86,26 @@ try {
                 $_PUT['role'],
                 $_PUT['id']
             ]);
+
             echo json_encode(['status' => 'success', 'message' => 'User updated successfully']);
             break;
 
         case 'DELETE': // Delete a user
-            parse_str(file_get_contents('php://input'), $_DELETE);
+            if ($role !== 'Admin') {
+                echo json_encode(['status' => 'error', 'message' => 'Access denied']);
+                http_response_code(403);
+                exit;
+            }
 
-            if (empty($_DELETE['id'])) {
-                echo json_encode(['status' => 'error', 'message' => 'User ID is required']);
+            parse_str(file_get_contents('php://input'), $_DELETE);
+            if (!isset($_DELETE['id'])) {
+                echo json_encode(['status' => 'error', 'message' => 'Missing user ID']);
                 exit;
             }
 
             $stmt = $db->prepare("DELETE FROM users WHERE id = ?");
             $stmt->execute([$_DELETE['id']]);
+
             echo json_encode(['status' => 'success', 'message' => 'User deleted successfully']);
             break;
 
