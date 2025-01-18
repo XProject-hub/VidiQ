@@ -86,8 +86,6 @@ mkdir -p $CONFIG_DIR
 echo "{\"ip\": \"$MAIN_SERVER_IP\", \"name\": \"$MAIN_SERVER_NAME\"}" > $CONFIG_DIR/main_server.json
 echo -e "${green}Main server details saved at $CONFIG_DIR/main_server.json${reset}"
 
-# Create vidiq_master.db and initialize users table
-# Set up SQLite database
 echo -e "${green}Setting up SQLite database...${reset}"
 BASE_DIR=$(pwd)
 DB_PATH="$BASE_DIR/config/vidiq_master.db"
@@ -125,13 +123,29 @@ if [ ! -f "$DB_PATH" ]; then
     # Insert default data for Main Server
     sqlite3 $DB_PATH "INSERT INTO server_details (server_name, connections, live_streams)
     VALUES ('Main Server', 100, 80);"
-    
     echo -e "${green}Database initialized with server details.${reset}"
+    
+    # Create streams table
+    sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS streams (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        category TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );"
+    echo -e "${green}Streams table created successfully.${reset}"
+
 else
     echo -e "${green}SQLite database already exists. Skipping creation.${reset}"
-        # Add role column to users table if not exists
+    # Ensure the role column exists in users table
     sqlite3 $DB_PATH "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'Viewer';"
-fi
+    # Ensure the streams table exists
+    sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS streams (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        category TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );"
+    echo -e "${green}Checked for existence and/or added Streams table.${reset}"
 fi
 
 
