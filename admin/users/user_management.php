@@ -1,5 +1,7 @@
 <?php
 session_start();
+require_once '../config/session_manager.php'; // Assuming this path is correct
+
 if (!isset($_SESSION['user'], $_SESSION['role'])) {
     header('Location: /index.php');
     exit;
@@ -7,6 +9,9 @@ if (!isset($_SESSION['user'], $_SESSION['role'])) {
 
 // This assumes you're storing the user's role in session as well.
 $role = $_SESSION['role'];
+
+// Restrict access to Admin and Editor
+checkRole(['Admin', 'Editor']);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -14,7 +19,8 @@ $role = $_SESSION['role'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Management</title>
-    <link rel="stylesheet" href="/css/style.css">
+    <!-- Update the stylesheet path if necessary -->
+    <link rel="stylesheet" href="/css/style.css"> 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
