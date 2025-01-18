@@ -216,12 +216,12 @@ if (!isset($_SESSION['user'])) {
     <section class="user-management">
         <h1>User Management</h1>
         <button id="add-user-btn" class="btn btn-primary">Add New User</button>
-        <table class="user-table">
+        <table id="user-table" class="table">
             <thead>
                 <tr>
-                    <th>ID</th>
                     <th>Username</th>
                     <th>Email</th>
+                    <th>Role</th>
                     <th>Actions</th>
                 </tr>
             </thead>

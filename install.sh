@@ -129,6 +129,9 @@ if [ ! -f "$DB_PATH" ]; then
     echo -e "${green}Database initialized with server details.${reset}"
 else
     echo -e "${green}SQLite database already exists. Skipping creation.${reset}"
+        # Add role column to users table if not exists
+    sqlite3 $DB_PATH "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'Viewer';"
+fi
 fi
 
 

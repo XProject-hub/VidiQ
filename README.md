@@ -126,3 +126,15 @@ This feature provides the ability to manage users (add, edit, delete) from the a
 Ensure `role` column exists in the `users` table:
 ```sql
 ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'Viewer';
+### User Management System
+The system supports role-based access:
+- **Roles:** Admin, Editor, Viewer.
+
+#### API Endpoints
+1. **GET** `/api/user_api.php` - Fetch all users.
+2. **POST** `/api/user_api.php` - Add a new user.
+   - Body: `{ "username": "admin", "email": "admin@example.com", "password": "secure", "role": "Admin" }`
+3. **PUT** `/api/user_api.php` - Update user details.
+   - Body: `{ "id": 1, "email": "new@example.com", "password": "newpass", "role": "Editor" }`
+4. **DELETE** `/api/user_api.php` - Delete a user.
+   - Body: `{ "id": 1 }`
