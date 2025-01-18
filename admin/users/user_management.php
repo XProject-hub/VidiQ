@@ -1,7 +1,7 @@
 <?php
 session_start();
 if (!isset($_SESSION['user'])) {
-    header('Location: /public/index.php');
+    header('Location: /index.php');
     exit;
 }
 ?>
@@ -12,6 +12,8 @@ if (!isset($_SESSION['user'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Management</title>
     <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
 
 </head>
 <body>
@@ -211,22 +213,55 @@ if (!isset($_SESSION['user'])) {
 </div>
 </header>
 <main>
-    <h1>User Management</h1>
-    <div>
-        <button id="add-user-btn">Add User</button>
+    <section class="user-management">
+        <h1>User Management</h1>
+        <button id="add-user-btn" class="btn btn-primary">Add New User</button>
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="user-table-body">
+                <!-- User data will be dynamically loaded here -->
+            </tbody>
+        </table>
+    </section>
+
+    <!-- User Modal -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2 id="modal-title">Add User</h2>
+            <form id="user-form">
+                <input type="hidden" name="id" id="user-id">
+                <div>
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div>
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div>
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div>
+                    <label for="role">Role</label>
+                    <select id="role" name="role" required>
+                        <option value="Viewer">Viewer</option>
+                        <option value="Editor">Editor</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">Save</button>
+            </form>
+        </div>
     </div>
-    <table id="user-table">
-        <thead>
-            <tr>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Users will be dynamically loaded here -->
-        </tbody>
-    </table>
 </main>
 <script src="/public/js/user_management.js"></script>
 </body>

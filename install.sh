@@ -86,10 +86,11 @@ mkdir -p $CONFIG_DIR
 echo "{\"ip\": \"$MAIN_SERVER_IP\", \"name\": \"$MAIN_SERVER_NAME\"}" > $CONFIG_DIR/main_server.json
 echo -e "${green}Main server details saved at $CONFIG_DIR/main_server.json${reset}"
 
-# Create auto.db and initialize users table
+# Create vidiq_master.db and initialize users table
 # Set up SQLite database
 echo -e "${green}Setting up SQLite database...${reset}"
-DB_PATH="$BASE_DIR/config/auto.db"
+BASE_DIR=$(pwd)
+DB_PATH="$BASE_DIR/config/vidiq_master.db"
 
 if [ ! -f "$DB_PATH" ]; then
     # Create directory and set permissions
@@ -98,14 +99,18 @@ if [ ! -f "$DB_PATH" ]; then
     
     # Initialize SQLite database and create users table
     sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY, 
-        username TEXT, 
-        password TEXT
+        id INTEGER PRIMARY KEY AUTOINCREMENT, 
+        username TEXT NOT NULL, 
+        email TEXT UNIQUE NOT NULL, 
+        password TEXT NOT NULL, 
+        role TEXT NOT NULL DEFAULT 'Viewer',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );"
     
     # Insert admin user with a random password
     ADMIN_PASSWORD=$(openssl rand -base64 12)
-    sqlite3 $DB_PATH "INSERT INTO users (username, password) VALUES ('admin', '$ADMIN_PASSWORD');"
+    sqlite3 $DB_PATH "INSERT INTO users (username, email, password, role) 
+    VALUES ('admin', 'admin@example.com', '$ADMIN_PASSWORD', 'Admin');"
     echo -e "${green}Admin user created with random password: ${ADMIN_PASSWORD}${reset}"
 
     # Create server_details table
