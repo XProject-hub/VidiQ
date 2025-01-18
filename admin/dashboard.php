@@ -1,14 +1,15 @@
 <?php
 session_start();
+require_once '../config/database.php';
 
 // Check if the user is logged in
 if (!isset($_SESSION['user'])) {
     header('Location: /index.php');
     exit;
-
-    require_once '../config/database.php';
+}
 
 // Fetch the user's role from the database
+$db = new PDO('sqlite:../config/vidiq_master.db'); // Adjust the path and database connection as needed
 $stmt = $db->prepare("SELECT role FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -19,7 +20,6 @@ if (!$user) {
 }
 
 $role = $user['role'];
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">

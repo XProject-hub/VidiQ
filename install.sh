@@ -86,6 +86,7 @@ mkdir -p $CONFIG_DIR
 echo "{\"ip\": \"$MAIN_SERVER_IP\", \"name\": \"$MAIN_SERVER_NAME\"}" > $CONFIG_DIR/main_server.json
 echo -e "${green}Main server details saved at $CONFIG_DIR/main_server.json${reset}"
 
+#db settings
 echo -e "${green}Setting up SQLite database...${reset}"
 BASE_DIR=$(pwd)
 DB_PATH="$BASE_DIR/config/vidiq_master.db"
@@ -123,30 +124,31 @@ if [ ! -f "$DB_PATH" ]; then
     # Insert default data for Main Server
     sqlite3 $DB_PATH "INSERT INTO server_details (server_name, connections, live_streams)
     VALUES ('Main Server', 100, 80);"
-    echo -e "${green}Database initialized with server details.${reset}"
     
-    # Create streams table
+    # Create streams table with status column
     sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS streams (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         category TEXT NOT NULL,
+        status TEXT DEFAULT 'inactive',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );"
-    echo -e "${green}Streams table created successfully.${reset}"
+    echo -e "${green}Streams table created successfully with status column.${reset}"
 
 else
     echo -e "${green}SQLite database already exists. Skipping creation.${reset}"
     # Ensure the role column exists in users table
     sqlite3 $DB_PATH "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'Viewer';"
-    # Ensure the streams table exists
-    sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS streams (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        category TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );"
-    echo -e "${green}Checked for existence and/or added Streams table.${reset}"
+    
+    # Check if the streams table exists and add the status column if it doesn't exist
+    COLUMN_EXISTS=$(sqlite3 $DB_PATH "PRAGMA table_info(streams);" | grep -c 'status')
+    if [ "$COLUMN_EXISTS" -eq "0" ]; then
+        sqlite3 $DB_PATH "ALTER TABLE streams ADD COLUMN status TEXT;"
+        sqlite3 $DB_PATH "UPDATE streams SET status = 'inactive' WHERE status IS NULL;"
+        echo -e "${green}Status column added to streams table and initialized.${reset}"
+    fi
 fi
+
 
 
 # Configure Nginx
