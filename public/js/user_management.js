@@ -1,13 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
     const apiEndpoint = '/api/user_api.php';
-
-    // DOM Elements
     const userTableBody = document.getElementById('user-table-body');
-    const userModal = document.getElementById('user-modal');
-    const userForm = document.getElementById('user-form');
-    const modalTitle = document.getElementById('modal-title');
     const addUserBtn = document.getElementById('add-user-btn');
+    const userForm = document.getElementById('user-form');
+    const userModal = document.getElementById('user-modal');
     const closeModal = document.querySelector('.close-modal');
+    const modalTitle = document.getElementById('modal-title');
 
     // Fetch and display users
     function fetchUsers() {
@@ -15,21 +13,25 @@ document.addEventListener('DOMContentLoaded', () => {
             .then(response => response.json())
             .then(data => {
                 userTableBody.innerHTML = '';
-                data.forEach(user => {
-                    const buttons = user.role !== 'Admin' ? `
-                        <button class="btn btn-edit" data-id="${user.id}" data-username="${user.username}" data-email="${user.email}" data-role="${user.role}">Edit</button>
-                        <button class="btn btn-delete" data-id="${user.id}">Delete</button>
-                    ` : '<span>No actions allowed</span>';
-
+                data.data.forEach(user => {
                     userTableBody.innerHTML += `
                         <tr>
+                            <td>${user.id}</td>
                             <td>${user.username}</td>
                             <td>${user.email}</td>
                             <td>${user.role}</td>
-                            <td>${buttons}</td>
+                            <td>
+                                ${user.role !== 'Admin' ? `
+                                <button class="btn btn-edit" data-id="${user.id}" data-username="${user.username}" data-email="${user.email}" data-role="${user.role}">Edit</button>
+                                <button class="btn btn-delete" data-id="${user.id}">Delete</button>` : '<span>No actions allowed</span>'}
+                            </td>
                         </tr>
                     `;
                 });
+
+                // Toggle "Add User" button visibility based on role
+                const currentUserRole = data.currentUserRole || 'Viewer';
+                addUserBtn.style.display = currentUserRole === 'Admin' ? 'inline-block' : 'none';
             })
             .catch(err => console.error('Error:', err));
     }
@@ -79,18 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Add User Button Click
-    addUserBtn.addEventListener('click', () => {
-        const username = prompt('Enter username:');
-        const email = prompt('Enter email:');
-        const password = prompt('Enter password:');
-        const role = prompt('Enter role (Admin, Editor, Viewer):');
-
-        fetch(apiEndpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, email, password, role })
-        }).then(() => fetchUsers());
-    });
+    addUserBtn.addEventListener('click', () => showModal(false));
 
     // Close Modal Button
     closeModal.addEventListener('click', hideModal);

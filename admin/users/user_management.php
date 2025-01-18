@@ -1,9 +1,12 @@
 <?php
 session_start();
-if (!isset($_SESSION['user'])) {
+if (!isset($_SESSION['user'], $_SESSION['role'])) {
     header('Location: /index.php');
     exit;
 }
+
+// This assumes you're storing the user's role in session as well.
+$role = $_SESSION['role'];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -13,8 +16,6 @@ if (!isset($_SESSION['user'])) {
     <title>User Management</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
-
 </head>
 <body>
 <header>
@@ -215,7 +216,9 @@ if (!isset($_SESSION['user'])) {
 <main>
     <section class="user-management">
         <h1>User Management</h1>
-        <button id="add-user-btn" class="btn btn-primary">Add New User</button>
+        <?php if ($role === 'Admin'): ?>
+            <button id="add-user-btn" class="btn btn-primary">Add New User</button>
+        <?php endif; ?>
         <table id="user-table" class="table">
             <thead>
                 <tr>

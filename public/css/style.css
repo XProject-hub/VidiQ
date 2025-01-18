@@ -352,3 +352,64 @@ header {
 .btn-danger:hover {
     background-color: darkred;
 }
+/* Table Styling */
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    color: #00ffff;
+    background-color: #1b1b1b;
+    border: 1px solid #444;
+}
+
+.user-table th, .user-table td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #444;
+}
+
+.user-table th {
+    background-color: #2c2c2c;
+}
+
+/* Modal Styling */
+.modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 400px;
+    background-color: #1b1b1b;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.5);
+    color: #00ffff;
+}
+
+.modal-content {
+    text-align: left;
+}
+
+.modal-content label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.modal-content input, .modal-content select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #444;
+    border-radius: 5px;
+    background-color: #2c2c2c;
+    color: #00ffff;
+}
+
+.close-modal {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+    color: #00ffff;
+}
