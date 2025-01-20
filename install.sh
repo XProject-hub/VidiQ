@@ -28,25 +28,29 @@ VIDIQ_DB_NAME="vidiq_$(openssl rand -hex 4)"
 ADMIN_EMAIL="admin@example.com"
 ADMIN_PASSWORD=$(openssl rand -base64 12)
 
-# Configure MySQL (automated setup)
-echo -e "${green}Configuring MySQL...${reset}"
-sudo systemctl enable --now mysql
+# Stop MySQL service to ensure proper reset
+echo -e "${green}Resetting MySQL root password...${reset}"
+sudo systemctl stop mysql
+sudo mysqld_safe --skip-grant-tables & sleep 5
 
-# Check if MySQL root has a password or not
-if sudo mysqladmin -u root status &>/dev/null; then
-    echo -e "${green}No existing MySQL root password detected. Setting a new one...${reset}"
-    sudo mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;"
-else
-    echo -e "${green}Existing MySQL root password detected. Using it to configure MySQL...${reset}"
-    MYSQL_ROOT_PASSWORD=$(sudo grep 'temporary password' /var/log/mysqld.log | tail -1 | awk '{print $NF}')
-    sudo mysql -u root -p"${MYSQL_ROOT_PASSWORD}" -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;"
-fi
+# Reset MySQL root password
+mysql -u root <<EOF
+FLUSH PRIVILEGES;
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
+EOF
 
-# Create VidiQ database and user
-echo -e "${green}Creating VidiQ database and user...${reset}"
-mysql -u root -p"${MYSQL_ROOT_PASSWORD}" -e "CREATE DATABASE IF NOT EXISTS ${VIDIQ_DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root -p"${MYSQL_ROOT_PASSWORD}" -e "CREATE USER IF NOT EXISTS 'vidiq'@'localhost' IDENTIFIED BY '${VIDIQ_DB_PASSWORD}';"
-mysql -u root -p"${MYSQL_ROOT_PASSWORD}" -e "GRANT ALL PRIVILEGES ON ${VIDIQ_DB_NAME}.* TO 'vidiq'@'localhost'; FLUSH PRIVILEGES;"
+# Restart MySQL service
+sudo killall mysqld_safe
+sudo systemctl start mysql
+
+# Configure MySQL database and user
+echo -e "${green}Configuring MySQL database and user...${reset}"
+mysql -u root -p"${MYSQL_ROOT_PASSWORD}" <<EOF
+CREATE DATABASE IF NOT EXISTS ${VIDIQ_DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS 'vidiq'@'localhost' IDENTIFIED BY '${VIDIQ_DB_PASSWORD}';
+GRANT ALL PRIVILEGES ON ${VIDIQ_DB_NAME}.* TO 'vidiq'@'localhost';
+FLUSH PRIVILEGES;
+EOF
 
 # Set up project directory
 BASE_DIR="/home/VidiQ"
