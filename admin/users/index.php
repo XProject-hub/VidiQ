@@ -6,7 +6,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 // Connect to SQLite database
-$db = new SQLite3('/home/Vidiq/panel/config/auto.db');
+$db = new SQLite3('/home//Vidiq/config/auto.db');
 
 // Fetch all users
 $result = $db->query("SELECT * FROM users");

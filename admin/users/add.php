@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$db = new SQLite3('/home/Vidiq/panel/config/auto.db');
+$db = new SQLite3('/home//Vidiq/config/auto.db');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = $_POST['username'];
