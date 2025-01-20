@@ -110,8 +110,6 @@ if [ ! -f "$DB_PATH" ]; then
     sqlite3 $DB_PATH "INSERT INTO users (username, email, password, role) 
     VALUES ('admin', '$ADMIN_EMAIL', '$ADMIN_PASSWORD', 'Admin');"
     echo -e "${green}Admin user created with random password: ${ADMIN_PASSWORD}${reset}"
-
-
     # Create server_details table
     sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS server_details (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
