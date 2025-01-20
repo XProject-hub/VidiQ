@@ -5,7 +5,7 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$db = new SQLite3('/home//Vidiq/config/auto.db');
+$db = new SQLite3('/home/Vidiq/config/auto.db');
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

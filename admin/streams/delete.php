@@ -8,7 +8,7 @@ if (!isset($_SESSION['user'])) {
 }
 
 // Database connection
-$db = new SQLite3('/home//Vidiq/config/auto.db');
+$db = new SQLite3('/home/Vidiq/config/auto.db');
 
 // Check if stream ID is provided via GET request
 $id = isset($_GET['id']) ? intval($_GET['id']) : null;

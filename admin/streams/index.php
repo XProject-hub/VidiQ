@@ -7,7 +7,7 @@ if (!isset($_SESSION['user'])) {
 
 try {
     // Database connection
-    $db = new SQLite3('/home//Vidiq/config/auto.db');
+    $db = new SQLite3('/home/Vidiq/config/auto.db');
 
     // Fetch all streams
     $streams = $db->query("SELECT * FROM streams");
