@@ -55,7 +55,13 @@ sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS users (
 ADMIN_EMAIL="admin@example.com"
 ADMIN_PASSWORD=$(openssl rand -base64 12)
 ADMIN_HASHED_PASSWORD=$(php -r "echo password_hash('${ADMIN_PASSWORD}', PASSWORD_BCRYPT);")
-sqlite3 $DB_PATH "INSERT INTO users (username, email, password, role) VALUES ('admin', '$ADMIN_EMAIL', '$ADMIN_HASHED_PASSWORD', 'Admin');"
+EXISTING_ADMIN=$(sqlite3 $DB_PATH "SELECT COUNT(*) FROM users WHERE email = '$ADMIN_EMAIL';")
+if [ "$EXISTING_ADMIN" -eq 0 ]; then
+    sqlite3 $DB_PATH "INSERT INTO users (username, email, password, role) VALUES ('admin', '$ADMIN_EMAIL', '$ADMIN_HASHED_PASSWORD', 'Admin');"
+    echo -e "${green}Admin user created.${reset}"
+else
+    echo -e "${cyan}Admin user already exists. Skipping creation.${reset}"
+fi
 
 # Configure PHP
 PHP_VERSION=$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')
