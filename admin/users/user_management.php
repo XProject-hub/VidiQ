@@ -1,9 +1,7 @@
 <?php
 session_start();
-require_once '../config/session_manager.php'; // Assuming this path is correct
-
-if (!isset($_SESSION['user'], $_SESSION['role'])) {
-    header('Location: /index.php');
+if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
+    header('Location: /public/index.php');
     exit;
 }
 

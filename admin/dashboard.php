@@ -1,10 +1,7 @@
 <?php
 session_start();
-require_once '../config/database.php';
-
-// Check if the user is logged in
-if (!isset($_SESSION['user'])) {
-    header('Location: /index.php');
+if (!isset($_SESSION['user']) || $_SESSION['user']['role'] !== 'Admin') {
+    header('Location: /public/index.php');
     exit;
 }
 

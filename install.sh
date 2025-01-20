@@ -10,14 +10,14 @@ reset="\033[0m"
 # Banner
 clear
 echo -e "${cyan}================${reset}"
-echo -e "${white}Welcome to VidiQ${reset}"
+echo -e "${white}Welcome to VidiQ Installation${reset}"
 echo -e "${white}Developed by X Project${reset}"
 echo -e "${cyan}================${reset}"
 
 # Update system and install dependencies
 echo -e "${green}Updating system and installing dependencies...${reset}"
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y nginx mysql-server php-fpm php-mysql git unzip curl sqlite3
+sudo apt install -y nginx mysql-server php-fpm php-mysql git unzip curl sqlite3 php-sqlite3
 
 # Configure MySQL
 MYSQL_ROOT_PASSWORD=$(openssl rand -base64 12)
@@ -26,28 +26,23 @@ sudo systemctl unmask mysql.service
 sudo systemctl enable mysql.service
 sudo systemctl start mysql
 sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;"
-sudo mysql -e "CREATE DATABASE vidiq;"
+sudo mysql -e "CREATE DATABASE vidiq CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
-# Set up web directory
-BASE_DIR="/home/VidiQ"
-sudo mkdir -p $BASE_DIR/config
+# Set up project directory
+BASE_DIR="/var/www/vidiq"
+echo -e "${green}Setting up project directory...${reset}"
+sudo mkdir -p $BASE_DIR
 sudo chown -R $USER:$USER $BASE_DIR
 sudo chmod -R 755 $BASE_DIR
 
 # Clone project from GitHub
 echo -e "${green}Cloning VidiQ project from GitHub...${reset}"
-git clone https://github.com/XProject-hub/vidiq.git $BASE_DIR || (cd $BASE_DIR && git pull)
-chmod +x $BASE_DIR/install.sh
-
-# Save Main Server Information
-MAIN_SERVER_IP=$(hostname -I | awk '{print $1}')
-MAIN_SERVER_NAME=$(hostname)
-CONFIG_DIR="$BASE_DIR/config"
-echo "{\"ip\": \"$MAIN_SERVER_IP\", \"name\": \"$MAIN_SERVER_NAME\"}" > $CONFIG_DIR/main_server.json
+git clone https://github.com/XProject-hub/VidiQ.git $BASE_DIR || (cd $BASE_DIR && git pull)
 
 # Create and initialize SQLite database
-DB_PATH="$CONFIG_DIR/auto.db"
-echo -e "${green}Setting up SQLite database...${reset}"
+DB_PATH="$BASE_DIR/config/database.sqlite"
+echo -e "${green}Initializing SQLite database...${reset}"
+mkdir -p "$BASE_DIR/config"
 sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL,
@@ -58,24 +53,36 @@ sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS users (
 );"
 ADMIN_EMAIL="admin@example.com"
 ADMIN_PASSWORD=$(openssl rand -base64 12)
-sqlite3 $DB_PATH "INSERT INTO users (username, email, password, role) VALUES ('admin', '$ADMIN_EMAIL', '$ADMIN_PASSWORD', 'Admin');"
+ADMIN_HASHED_PASSWORD=$(php -r "echo password_hash('${ADMIN_PASSWORD}', PASSWORD_BCRYPT);")
+sqlite3 $DB_PATH "INSERT INTO users (username, email, password, role) VALUES ('admin', '$ADMIN_EMAIL', '$ADMIN_HASHED_PASSWORD', 'Admin');"
+
+# Configure PHP
+PHP_VERSION=$(php -r 'echo PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION;')
+echo -e "${green}Configuring PHP...${reset}"
+sudo sed -i "s/;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" /etc/php/${PHP_VERSION}/fpm/php.ini
+sudo systemctl restart php${PHP_VERSION}-fpm
 
 # Configure Nginx
+echo -e "${green}Configuring Nginx...${reset}"
 NGINX_CONFIG="server {
     listen 80;
     server_name _;
+
     root $BASE_DIR/public;
     index index.php index.html;
+
     location / {
         try_files \$uri \$uri/ /index.php?\$query_string;
     }
-    location ~ \.php$ {
+
+    location ~ \.php\$ {
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/php$(php -r 'echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;')-fpm.sock;
+        fastcgi_pass unix:/run/php/php${PHP_VERSION}-fpm.sock;
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
         include fastcgi_params;
     }
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|otf|eot)$ {
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|otf|eot)\$ {
         expires max;
         log_not_found off;
     }
@@ -86,10 +93,10 @@ sudo nginx -t && sudo systemctl restart nginx
 
 # Final message
 echo -e "${cyan}================${reset}"
-echo -e "${white}Thank you for installing VidiQ${reset}"
+echo -e "${white}Installation Complete!${reset}"
 echo -e "${cyan}================${reset}"
 echo -e "${white}MySQL Password: ${MYSQL_ROOT_PASSWORD}${reset}"
 echo -e "${white}SQLite Database Path: ${DB_PATH}${reset}"
 echo -e "${white}Admin Email: ${ADMIN_EMAIL}${reset}"
 echo -e "${white}Admin Password: ${ADMIN_PASSWORD}${reset}"
-echo -e "${white}Panel URL: http://${MAIN_SERVER_IP}${reset}"
+echo -e "${white}Panel URL: http://$(hostname -I | awk '{print $1}')${reset}"

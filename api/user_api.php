@@ -1,22 +1,23 @@
 <?php
-require_once '../config/database.php';
+require_once '../config/config.php';
 session_start();
 
+// Headers for JSON response
 header('Content-Type: application/json');
 
-// Define allowed roles
+// Define roles
 define('ROLE_ADMIN', 'Admin');
 define('ROLE_VIEWER', 'Viewer');
 
-// Ensure user is authenticated
+// Check if the user is authenticated
 if (!isset($_SESSION['user_id'])) {
     http_response_code(401);
     echo json_encode(['status' => 'error', 'message' => 'Unauthorized']);
     exit;
 }
 
-// Fetch the user's role from the database
-$stmt = $db->prepare("SELECT role FROM users WHERE id = ?");
+// Fetch the authenticated user's role
+$stmt = $pdo->prepare("SELECT role FROM users WHERE id = ?");
 $stmt->execute([$_SESSION['user_id']]);
 $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -30,7 +31,8 @@ $role = $user['role'];
 
 try {
     switch ($_SERVER['REQUEST_METHOD']) {
-        case 'GET': // Fetch all users
+        case 'GET':
+            // Only Admin can fetch all users
             if ($role !== ROLE_ADMIN) {
                 http_response_code(403);
                 echo json_encode(['status' => 'error', 'message' => 'Access denied']);
@@ -38,14 +40,15 @@ try {
             }
 
             $query = "SELECT id, username, email, role, created_at FROM users";
-            $stmt = $db->prepare($query);
+            $stmt = $pdo->prepare($query);
             $stmt->execute();
             $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             echo json_encode(['status' => 'success', 'data' => $users]);
             break;
 
-        case 'POST': // Add a new user
+        case 'POST':
+            // Only Admin can create a user
             if ($role !== ROLE_ADMIN) {
                 http_response_code(403);
                 echo json_encode(['status' => 'error', 'message' => 'Access denied']);
@@ -54,58 +57,63 @@ try {
 
             $data = json_decode(file_get_contents('php://input'), true);
 
+            // Validate input fields
             if (!isset($data['username'], $data['email'], $data['password'], $data['role'])) {
                 http_response_code(400);
-                echo json_encode(['status' => 'error', 'message' => 'Missing fields']);
+                echo json_encode(['status' => 'error', 'message' => 'Missing required fields']);
                 exit;
             }
 
-            $stmt = $db->prepare("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO users (username, email, password, role) VALUES (?, ?, ?, ?)");
             $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
             $stmt->execute([$data['username'], $data['email'], $hashedPassword, $data['role']]);
 
             echo json_encode(['status' => 'success', 'message' => 'User created successfully']);
             break;
 
-        case 'PUT': // Update user details
+        case 'PUT':
+            // Only Admin can update a user
             if ($role !== ROLE_ADMIN) {
                 http_response_code(403);
                 echo json_encode(['status' => 'error', 'message' => 'Access denied']);
                 exit;
             }
 
-            parse_str(file_get_contents('php://input'), $_PUT);
+            $data = json_decode(file_get_contents('php://input'), true);
 
-            if (!isset($_PUT['id'], $_PUT['email'], $_PUT['password'], $_PUT['role'])) {
+            // Validate input fields
+            if (!isset($data['id'], $data['email'], $data['password'], $data['role'])) {
                 http_response_code(400);
-                echo json_encode(['status' => 'error', 'message' => 'Missing fields']);
+                echo json_encode(['status' => 'error', 'message' => 'Missing required fields']);
                 exit;
             }
 
-            $stmt = $db->prepare("UPDATE users SET email = ?, password = ?, role = ? WHERE id = ?");
-            $hashedPassword = password_hash($_PUT['password'], PASSWORD_BCRYPT);
-            $stmt->execute([$$_PUT['email'], $hashedPassword, $_PUT['role'], $_PUT['id']]);
+            $stmt = $pdo->prepare("UPDATE users SET email = ?, password = ?, role = ? WHERE id = ?");
+            $hashedPassword = password_hash($data['password'], PASSWORD_BCRYPT);
+            $stmt->execute([$data['email'], $hashedPassword, $data['role'], $data['id']]);
 
             echo json_encode(['status' => 'success', 'message' => 'User updated successfully']);
             break;
 
-        case 'DELETE': // Delete a user
+        case 'DELETE':
+            // Only Admin can delete a user
             if ($role !== ROLE_ADMIN) {
                 http_response_code(403);
                 echo json_encode(['status' => 'error', 'message' => 'Access denied']);
                 exit;
             }
 
-            parse_str(file_get_contents('php://input'), $_DELETE);
+            $data = json_decode(file_get_contents('php://input'), true);
 
-            if (!isset($_DELETE['id'])) {
+            // Validate input fields
+            if (!isset($data['id'])) {
                 http_response_code(400);
                 echo json_encode(['status' => 'error', 'message' => 'Missing user ID']);
                 exit;
             }
 
-            $stmt = $db->prepare("DELETE FROM users WHERE id = ?");
-            $stmt->execute([$_DELETE['id']]);
+            $stmt = $pdo->prepare("DELETE FROM users WHERE id = ?");
+            $stmt->execute([$data['id']]);
 
             echo json_encode(['status' => 'success', 'message' => 'User deleted successfully']);
             break;
@@ -116,9 +124,9 @@ try {
             break;
     }
 } catch (PDOException $e) {
-    // Log the error
+    // Log error and return generic error message
     error_log("Database error: " . $e->getMessage());
     http_response_code(500);
-    echo json_encode(['status' => 'error', 'message' => 'An error occurred: ' . $e->getMessage()]);
+    echo json_encode(['status' => 'error', 'message' => 'Internal server error']);
 }
 ?>
