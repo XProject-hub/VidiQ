@@ -1,6 +1,10 @@
 <?php
 session_start();
-$db = new SQLite3('/home/Vidiq/config/auto.db');
+try {
+    $db = new SQLite3('/home/Vidiq/config/auto.db');
+} catch (Exception $e) {
+    die('Database error: ' . $e->getMessage());
+}
 
 // Create users table if not exists
 $db->exec("CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, username TEXT, password TEXT)");
