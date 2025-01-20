@@ -29,15 +29,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $source = $_POST['source'];
     $status = isset($_POST['status']) ? 1 : 0;
 
+    // Prepare and bind the statement to update the stream
     $stmt = $db->prepare("UPDATE streams SET name = :name, source = :source, status = :status WHERE id = :id");
     $stmt->bindValue(':name', $name, SQLITE3_TEXT);
     $stmt->bindValue(':source', $source, SQLITE3_TEXT);
     $stmt->bindValue(':status', $status, SQLITE3_INTEGER);
     $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
-    $stmt->execute();
 
-    header('Location: /admin/streams/index.php');
-    exit;
+    if ($stmt->execute()) {
+        header('Location: /admin/streams/index.php');
+        exit;
+    } else {
+        // Handle error
+        echo "Error updating stream";
+    }
 }
 ?>
 <!DOCTYPE html>

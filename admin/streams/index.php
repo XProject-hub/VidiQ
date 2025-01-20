@@ -5,10 +5,17 @@ if (!isset($_SESSION['user'])) {
     exit;
 }
 
-$db = new SQLite3('/home/Vidiq/panel/config/auto.db');
+try {
+    // Database connection
+    $db = new SQLite3('/home/Vidiq/panel/config/auto.db');
 
-// Fetch all streams
-$streams = $db->query("SELECT * FROM streams");
+    // Fetch all streams
+    $streams = $db->query("SELECT * FROM streams");
+} catch (Exception $e) {
+    echo "Database error: " . $e->getMessage();
+    exit;
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -49,7 +56,7 @@ $streams = $db->query("SELECT * FROM streams");
                 <tbody>
                     <?php while ($stream = $streams->fetchArray(SQLITE3_ASSOC)): ?>
                         <tr>
-                            <td><?= $stream['id'] ?></td>
+                            <td><?= htmlspecialchars($stream['id']) ?></td>
                             <td><?= htmlspecialchars($stream['name']) ?></td>
                             <td><?= htmlspecialchars($stream['source']) ?></td>
                             <td><?= $stream['status'] == 1 ? 'Active' : 'Inactive' ?></td>

@@ -14,11 +14,11 @@ if ($result == 0) {
 
 // Handle login
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'];
-    $password = $_POST['password'];
+    $username = isset($_POST['username']) ? htmlspecialchars($_POST['username'], ENT_QUOTES, 'UTF-8') : '';
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
 
-    $stmt = $db->prepare("SELECT * FROM users WHERE username = :username");
-    $stmt->bindValue(':username', $username, SQLITE3_TEXT);
+    $stmt = $db->prepare("SELECT * FROM users WHERE username = ?");
+    $stmt->bindValue(1, $username, SQLITE3_TEXT);
     $user = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
 
     if ($user && password_verify($password, $user['password'])) {

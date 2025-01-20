@@ -86,10 +86,11 @@ mkdir -p $CONFIG_DIR
 echo "{\"ip\": \"$MAIN_SERVER_IP\", \"name\": \"$MAIN_SERVER_NAME\"}" > $CONFIG_DIR/main_server.json
 echo -e "${green}Main server details saved at $CONFIG_DIR/main_server.json${reset}"
 
-#db settings
+# Create auto.db and initialize users table
+# Set up SQLite database
 echo -e "${green}Setting up SQLite database...${reset}"
 BASE_DIR=$(pwd)
-DB_PATH="$BASE_DIR/config/vidiq_master.db"
+DB_PATH="$BASE_DIR/config/auto.db"
 
 if [ ! -f "$DB_PATH" ]; then
     # Create directory and set permissions
@@ -102,14 +103,13 @@ if [ ! -f "$DB_PATH" ]; then
         username TEXT NOT NULL, 
         email TEXT UNIQUE NOT NULL, 
         password TEXT NOT NULL, 
-        role TEXT NOT NULL DEFAULT 'Viewer',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );"
     
     # Insert admin user with a random password
     ADMIN_PASSWORD=$(openssl rand -base64 12)
-    sqlite3 $DB_PATH "INSERT INTO users (username, email, password, role) 
-    VALUES ('admin', 'admin@example.com', '$ADMIN_PASSWORD', 'Admin');"
+    sqlite3 $DB_PATH "INSERT INTO users (username, email, password) 
+    VALUES ('admin', 'admin@example.com', '$ADMIN_PASSWORD');"
     echo -e "${green}Admin user created with random password: ${ADMIN_PASSWORD}${reset}"
 
     # Create server_details table
@@ -125,30 +125,10 @@ if [ ! -f "$DB_PATH" ]; then
     sqlite3 $DB_PATH "INSERT INTO server_details (server_name, connections, live_streams)
     VALUES ('Main Server', 100, 80);"
     
-    # Create streams table with status column
-    sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS streams (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        category TEXT NOT NULL,
-        status TEXT DEFAULT 'inactive',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );"
-    echo -e "${green}Streams table created successfully with status column.${reset}"
-
+    echo -e "${green}Database initialized with server details.${reset}"
 else
     echo -e "${green}SQLite database already exists. Skipping creation.${reset}"
-    # Ensure the role column exists in users table
-    sqlite3 $DB_PATH "ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'Viewer';"
-    
-    # Check if the streams table exists and add the status column if it doesn't exist
-    COLUMN_EXISTS=$(sqlite3 $DB_PATH "PRAGMA table_info(streams);" | grep -c 'status')
-    if [ "$COLUMN_EXISTS" -eq "0" ]; then
-        sqlite3 $DB_PATH "ALTER TABLE streams ADD COLUMN status TEXT;"
-        sqlite3 $DB_PATH "UPDATE streams SET status = 'inactive' WHERE status IS NULL;"
-        echo -e "${green}Status column added to streams table and initialized.${reset}"
-    fi
 fi
-
 
 
 # Configure Nginx

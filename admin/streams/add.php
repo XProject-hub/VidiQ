@@ -13,16 +13,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $source = $_POST['source'];
     $status = isset($_POST['status']) ? 1 : 0;
 
+    // Prepare and execute the SQL statement
     $stmt = $db->prepare("INSERT INTO streams (name, source, status) VALUES (:name, :source, :status)");
     $stmt->bindValue(':name', $name, SQLITE3_TEXT);
     $stmt->bindValue(':source', $source, SQLITE3_TEXT);
     $stmt->bindValue(':status', $status, SQLITE3_INTEGER);
     $stmt->execute();
 
+    // Redirect to the index page
     header('Location: /admin/streams/index.php');
     exit;
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

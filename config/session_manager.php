@@ -8,13 +8,19 @@ if (!isset($_SESSION['user'])) {
 
 $role = $_SESSION['role'] ?? 'Viewer'; // Default role: Viewer
 
-// Redirect based on role
+// Function to check and enforce role
 function checkRole($requiredRole) {
     global $role;
+
     if ($role !== $requiredRole && $role !== 'Admin') {
         header('HTTP/1.1 403 Forbidden');
         echo "Access denied!";
         exit;
     }
 }
+
+// Enforce the required role before proceeding with further code
+checkRole('Admin'); // Example: Restrict access to Admins only
+
+// Your other logic here...
 ?>

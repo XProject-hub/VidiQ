@@ -22,10 +22,18 @@ try {
 
     // Fetch total users and active streams
     $stmt = $db->query("SELECT COUNT(*) AS totalUsers FROM users");
-    $stats['totalUsers'] = $stmt->fetchColumn();
+    if ($stmt) {
+        $stats['totalUsers'] = $stmt->fetchColumn();
+    } else {
+        throw new Exception('Failed to fetch total users');
+    }
 
     $stmt = $db->query("SELECT COUNT(*) AS activeStreams FROM streams WHERE status = 'active'");
-    $stats['activeStreams'] = $stmt->fetchColumn();
+    if ($stmt) {
+        $stats['activeStreams'] = $stmt->fetchColumn();
+    } else {
+        throw new Exception('Failed to fetch active streams');
+    }
 
     if ($userRole === 'Admin') {
         // Add admin-specific stats
@@ -42,7 +50,7 @@ try {
     }
 
     echo json_encode($stats);
-} catch (Exception $e) {
+} catch (\Exception $e) {
     echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
 }
 ?>
