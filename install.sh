@@ -9,10 +9,10 @@ reset="\033[0m"
 
 # Banner
 clear
-echo -e "${cyan}================${reset}"
-echo -e "${white}Welcome to VidiQ Installation${reset}"
+echo -e "${cyan}===============================${reset}"
+echo -e "${white}Welcome to the VidiQ Installer${reset}"
 echo -e "${white}Developed by X Project${reset}"
-echo -e "${cyan}================${reset}"
+echo -e "${cyan}===============================${reset}"
 
 # Update system and install dependencies
 echo -e "${green}Updating system and installing dependencies...${reset}"
@@ -21,12 +21,13 @@ sudo apt install -y nginx mysql-server php-fpm php-mysql git unzip curl sqlite3 
 
 # Configure MySQL
 MYSQL_ROOT_PASSWORD=$(openssl rand -base64 12)
+VIDIQ_DB_PASSWORD=$(openssl rand -base64 12)
 echo -e "${green}Configuring MySQL...${reset}"
-sudo systemctl unmask mysql.service
-sudo systemctl enable mysql.service
-sudo systemctl start mysql
+sudo systemctl enable --now mysql
 sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;"
 sudo mysql -e "CREATE DATABASE vidiq CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+sudo mysql -e "CREATE USER 'vidiq'@'localhost' IDENTIFIED BY '${VIDIQ_DB_PASSWORD}';"
+sudo mysql -e "GRANT ALL PRIVILEGES ON vidiq.* TO 'vidiq'@'localhost'; FLUSH PRIVILEGES;"
 
 # Set up project directory
 BASE_DIR="/var/www/vidiq"
@@ -75,14 +76,14 @@ NGINX_CONFIG="server {
         try_files \$uri \$uri/ /index.php?\$query_string;
     }
 
-    location ~ \.php\$ {
+    location ~ \\.php\$ {
         include snippets/fastcgi-php.conf;
         fastcgi_pass unix:/run/php/php${PHP_VERSION}-fpm.sock;
         fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
         include fastcgi_params;
     }
 
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|otf|eot)\$ {
+    location ~* \\\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|otf|eot)\$ {
         expires max;
         log_not_found off;
     }
@@ -91,12 +92,14 @@ echo "$NGINX_CONFIG" | sudo tee /etc/nginx/sites-available/vidiq
 sudo ln -sf /etc/nginx/sites-available/vidiq /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl restart nginx
 
-# Final message
-echo -e "${cyan}================${reset}"
+# Final Message
+MAIN_SERVER_IP=$(hostname -I | awk '{print $1}')
+echo -e "${cyan}=====================================${reset}"
 echo -e "${white}Installation Complete!${reset}"
-echo -e "${cyan}================${reset}"
-echo -e "${white}MySQL Password: ${MYSQL_ROOT_PASSWORD}${reset}"
+echo -e "${cyan}=====================================${reset}"
+echo -e "${white}MySQL Root Password: ${MYSQL_ROOT_PASSWORD}${reset}"
+echo -e "${white}MySQL VidiQ DB Password: ${VIDIQ_DB_PASSWORD}${reset}"
 echo -e "${white}SQLite Database Path: ${DB_PATH}${reset}"
 echo -e "${white}Admin Email: ${ADMIN_EMAIL}${reset}"
 echo -e "${white}Admin Password: ${ADMIN_PASSWORD}${reset}"
-echo -e "${white}Panel URL: http://$(hostname -I | awk '{print $1}')${reset}"
+echo -e "${white}Access your panel at: http://${MAIN_SERVER_IP}${reset}"
