@@ -11,45 +11,42 @@ reset="\033[0m"
 
 # Banner
 clear
-echo -e "${cyan}===============================${reset}"
-echo -e "${white}Welcome to the VidiQ Installer${reset}"
+echo -e "${cyan}======================================${reset}"
+echo -e "${white}Welcome to the Automated VidiQ Installer${reset}"
 echo -e "${white}Developed by X Project${reset}"
-echo -e "${cyan}===============================${reset}"
+echo -e "${cyan}======================================${reset}"
 
 # Update system and install dependencies
 echo -e "${green}Updating system and installing dependencies...${reset}"
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y nginx mysql-server php-fpm php-mysql git unzip curl sqlite3 php-sqlite3
 
-# Configure MySQL
-MYSQL_ROOT_PASSWORD=""
+# Generate secure credentials
+MYSQL_ROOT_PASSWORD=$(openssl rand -base64 12)
 VIDIQ_DB_PASSWORD=$(openssl rand -base64 12)
+VIDIQ_DB_NAME="vidiq_$(openssl rand -hex 4)"
+ADMIN_EMAIL="admin@example.com"
+ADMIN_PASSWORD=$(openssl rand -base64 12)
+
+# Configure MySQL (automated setup)
 echo -e "${green}Configuring MySQL...${reset}"
 sudo systemctl enable --now mysql
 
-# Prompt for existing MySQL root password or create a new one
-read -sp "Enter MySQL root password (leave blank for a new random password): " MYSQL_ROOT_PASSWORD_INPUT
-echo
-if [ -z "$MYSQL_ROOT_PASSWORD_INPUT" ]; then
-    MYSQL_ROOT_PASSWORD=$(openssl rand -base64 12)
-    echo -e "${green}Setting a new MySQL root password...${reset}"
-    sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;"
+# Check if MySQL root has a password or not
+if sudo mysqladmin -u root status &>/dev/null; then
+    echo -e "${green}No existing MySQL root password detected. Setting a new one...${reset}"
+    sudo mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;"
 else
-    MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD_INPUT"
+    echo -e "${green}Existing MySQL root password detected. Using it to configure MySQL...${reset}"
+    MYSQL_ROOT_PASSWORD=$(sudo grep 'temporary password' /var/log/mysqld.log | tail -1 | awk '{print $NF}')
+    sudo mysql -u root -p"${MYSQL_ROOT_PASSWORD}" -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;"
 fi
-
-# Test MySQL connection
-echo -e "${green}Testing MySQL connection...${reset}"
-mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT 1;" || {
-    echo -e "${red}Failed to connect to MySQL with the provided root password.${reset}"
-    exit 1
-}
 
 # Create VidiQ database and user
 echo -e "${green}Creating VidiQ database and user...${reset}"
-mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS vidiq CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE USER IF NOT EXISTS 'vidiq'@'localhost' IDENTIFIED BY '${VIDIQ_DB_PASSWORD}';"
-mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "GRANT ALL PRIVILEGES ON vidiq.* TO 'vidiq'@'localhost'; FLUSH PRIVILEGES;"
+mysql -u root -p"${MYSQL_ROOT_PASSWORD}" -e "CREATE DATABASE IF NOT EXISTS ${VIDIQ_DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u root -p"${MYSQL_ROOT_PASSWORD}" -e "CREATE USER IF NOT EXISTS 'vidiq'@'localhost' IDENTIFIED BY '${VIDIQ_DB_PASSWORD}';"
+mysql -u root -p"${MYSQL_ROOT_PASSWORD}" -e "GRANT ALL PRIVILEGES ON ${VIDIQ_DB_NAME}.* TO 'vidiq'@'localhost'; FLUSH PRIVILEGES;"
 
 # Set up project directory
 BASE_DIR="/home/VidiQ"
@@ -64,7 +61,7 @@ if [ -d "$BASE_DIR/.git" ]; then
     cd $BASE_DIR
     git stash
     git pull
-    git stash pop
+    git stash pop || true
 else
     git clone https://github.com/XProject-hub/VidiQ.git $BASE_DIR
 fi
@@ -81,8 +78,6 @@ sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS users (
     role TEXT NOT NULL DEFAULT 'Viewer',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );"
-ADMIN_EMAIL="admin@example.com"
-ADMIN_PASSWORD=$(openssl rand -base64 12)
 ADMIN_HASHED_PASSWORD=$(php -r "echo password_hash('${ADMIN_PASSWORD}', PASSWORD_BCRYPT);")
 EXISTING_ADMIN=$(sqlite3 $DB_PATH "SELECT COUNT(*) FROM users WHERE email = '$ADMIN_EMAIL';")
 if [ "$EXISTING_ADMIN" -eq 0 ]; then
@@ -129,10 +124,11 @@ sudo nginx -t && sudo systemctl restart nginx
 
 # Final Message
 MAIN_SERVER_IP=$(hostname -I | awk '{print $1}')
-echo -e "${cyan}=====================================${reset}"
+echo -e "${cyan}======================================${reset}"
 echo -e "${white}Installation Complete!${reset}"
-echo -e "${cyan}=====================================${reset}"
+echo -e "${cyan}======================================${reset}"
 echo -e "${white}MySQL Root Password: ${MYSQL_ROOT_PASSWORD}${reset}"
+echo -e "${white}MySQL VidiQ DB Name: ${VIDIQ_DB_NAME}${reset}"
 echo -e "${white}MySQL VidiQ DB Password: ${VIDIQ_DB_PASSWORD}${reset}"
 echo -e "${white}SQLite Database Path: ${DB_PATH}${reset}"
 echo -e "${white}Admin Email: ${ADMIN_EMAIL}${reset}"
