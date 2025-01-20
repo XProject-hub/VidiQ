@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+trap 'echo -e "${red}An error occurred. Check the logs for details.${reset}"' ERR
 
 # Colors for output
 green="\033[0;32m"
@@ -24,21 +26,36 @@ MYSQL_ROOT_PASSWORD=$(openssl rand -base64 12)
 VIDIQ_DB_PASSWORD=$(openssl rand -base64 12)
 echo -e "${green}Configuring MySQL...${reset}"
 sudo systemctl enable --now mysql
-sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;"
-sudo mysql -e "CREATE DATABASE vidiq CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-sudo mysql -e "CREATE USER 'vidiq'@'localhost' IDENTIFIED BY '${VIDIQ_DB_PASSWORD}';"
-sudo mysql -e "GRANT ALL PRIVILEGES ON vidiq.* TO 'vidiq'@'localhost'; FLUSH PRIVILEGES;"
+
+echo -e "${green}Please enter your MySQL root password (leave blank if none):${reset}"
+read -s EXISTING_ROOT_PASSWORD
+if [ -z "$EXISTING_ROOT_PASSWORD" ]; then
+    EXISTING_ROOT_PASSWORD_OPTION=""
+else
+    EXISTING_ROOT_PASSWORD_OPTION="-p$EXISTING_ROOT_PASSWORD"
+fi
+
+sudo mysql $EXISTING_ROOT_PASSWORD_OPTION -e "CREATE DATABASE vidiq CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+sudo mysql $EXISTING_ROOT_PASSWORD_OPTION -e "CREATE USER 'vidiq'@'localhost' IDENTIFIED BY '${VIDIQ_DB_PASSWORD}';"
+sudo mysql $EXISTING_ROOT_PASSWORD_OPTION -e "GRANT ALL PRIVILEGES ON vidiq.* TO 'vidiq'@'localhost'; FLUSH PRIVILEGES;"
 
 # Set up project directory
-BASE_DIR="/var/www/vidiq"
+BASE_DIR="/home/vidiq"
 echo -e "${green}Setting up project directory...${reset}"
 sudo mkdir -p $BASE_DIR
 sudo chown -R $USER:$USER $BASE_DIR
 sudo chmod -R 755 $BASE_DIR
 
 # Clone project from GitHub
-echo -e "${green}Cloning VidiQ project from GitHub...${reset}"
-git clone https://github.com/XProject-hub/VidiQ.git $BASE_DIR || (cd $BASE_DIR && git pull)
+echo -e "${green}Cloning or updating VidiQ project from GitHub...${reset}"
+if [ -d "$BASE_DIR/.git" ]; then
+    cd $BASE_DIR
+    git stash
+    git pull
+    git stash pop
+else
+    git clone https://github.com/XProject-hub/VidiQ.git $BASE_DIR
+fi
 
 # Create and initialize SQLite database
 DB_PATH="$BASE_DIR/config/database.sqlite"
