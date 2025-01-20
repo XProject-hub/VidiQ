@@ -19,36 +19,56 @@ echo -e "${cyan}======================================${reset}"
 # Update system and install dependencies
 echo -e "${green}Updating system and installing dependencies...${reset}"
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y nginx mysql-server php-fpm php-mysql git unzip curl sqlite3 php-sqlite3
+sudo apt install -y nginx mysql-server php-fpm php-mysql git unzip curl sqlite3 php-sqlite3 lsof
 
-# Generate secure credentials
+# Ensure no stale MySQL processes or files are blocking installation
+echo -e "${green}Checking for stale MySQL processes and files...${reset}"
+sudo systemctl stop mysql || true
+sudo killall -9 mysqld mysqld_safe || true
+sudo rm -rf /var/lib/mysql/ib_logfile* /var/lib/mysql/ibdata1.lock || true
+
+# Verify MySQL installation
 MYSQL_ROOT_PASSWORD=$(openssl rand -base64 12)
-VIDIQ_DB_PASSWORD=$(openssl rand -base64 12)
-VIDIQ_DB_NAME="vidiq_$(openssl rand -hex 4)"
-ADMIN_EMAIL="admin@example.com"
-ADMIN_PASSWORD=$(openssl rand -base64 12)
+if dpkg -l | grep -q mysql-server-8.0; then
+    echo -e "${green}MySQL is already installed. Attempting to reconfigure...${reset}"
+    sudo dpkg --configure -a
+else
+    echo -e "${green}Installing MySQL...${reset}"
+    sudo apt remove --purge mysql-server mysql-client mysql-common -y
+    sudo apt autoremove -y
+    sudo apt autoclean -y
+    sudo rm -rf /etc/mysql /var/lib/mysql /var/log/mysql*
+    sudo apt install mysql-server -y
+fi
 
-# Reset MySQL root password
-echo -e "${green}Resetting MySQL root password...${reset}"
-# Ensure the MySQL socket directory exists
+# Ensure MySQL socket directory exists
+echo -e "${green}Ensuring MySQL socket directory exists...${reset}"
 sudo mkdir -p /var/run/mysqld
 sudo chown mysql:mysql /var/run/mysqld
 
-# Start MySQL in safe mode for resetting root password
-sudo systemctl stop mysql
+# Start MySQL in safe mode to reset root password
+echo -e "${green}Resetting MySQL root password...${reset}"
 sudo mysqld_safe --skip-grant-tables & sleep 5
 
-# Reset root password
+# Reset MySQL root password
 mysql -u root <<EOF
 FLUSH PRIVILEGES;
 ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
 EOF
 
-# Restart MySQL service
-sudo killall mysqld_safe
+# Restart MySQL
+echo -e "${green}Restarting MySQL...${reset}"
+sudo killall -9 mysqld_safe || true
 sudo systemctl start mysql
+sudo systemctl enable mysql
 
-# Configure MySQL database and user
+# Generate secure credentials for the VidiQ database and admin
+VIDIQ_DB_PASSWORD=$(openssl rand -base64 12)
+VIDIQ_DB_NAME="vidiq_$(openssl rand -hex 4)"
+ADMIN_EMAIL="admin@example.com"
+ADMIN_PASSWORD=$(openssl rand -base64 12)
+
+# Create MySQL database and user
 echo -e "${green}Configuring MySQL database and user...${reset}"
 mysql -u root -p"${MYSQL_ROOT_PASSWORD}" <<EOF
 CREATE DATABASE IF NOT EXISTS ${VIDIQ_DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
