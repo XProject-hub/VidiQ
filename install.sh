@@ -59,7 +59,7 @@ else
 fi
 
 # Set up web directory
-BASE_DIR="/home/VidiQ/panel"
+BASE_DIR="/home/VidiQ/"
 sudo mkdir -p $BASE_DIR/config
 sudo chown -R $USER:$USER $BASE_DIR
 sudo chmod -R 755 /home/VidiQ
@@ -87,30 +87,30 @@ echo "{\"ip\": \"$MAIN_SERVER_IP\", \"name\": \"$MAIN_SERVER_NAME\"}" > $CONFIG_
 echo -e "${green}Main server details saved at $CONFIG_DIR/main_server.json${reset}"
 
 # Create auto.db and initialize users table
-# Set up SQLite database
 echo -e "${green}Setting up SQLite database...${reset}"
-BASE_DIR=$(pwd)
 DB_PATH="$BASE_DIR/config/auto.db"
-
 if [ ! -f "$DB_PATH" ]; then
-    # Create directory and set permissions
+    # Create directory and set permissions if they haven't been set yet
     sudo mkdir -p $(dirname "$DB_PATH")
     sudo chmod -R 755 $(dirname "$DB_PATH")
     
     # Initialize SQLite database and create users table
     sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT, 
-        username TEXT NOT NULL, 
-        email TEXT UNIQUE NOT NULL, 
-        password TEXT NOT NULL, 
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL,
+        email TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'Viewer',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );"
     
-    # Insert admin user with a random password
+    # Insert admin user with a random password and an email
     ADMIN_PASSWORD=$(openssl rand -base64 12)
-    sqlite3 $DB_PATH "INSERT INTO users (username, email, password) 
-    VALUES ('admin', 'admin@example.com', '$ADMIN_PASSWORD');"
+    ADMIN_EMAIL="admin@example.com"  # Default admin email
+    sqlite3 $DB_PATH "INSERT INTO users (username, email, password, role) 
+    VALUES ('admin', '$ADMIN_EMAIL', '$ADMIN_PASSWORD', 'Admin');"
     echo -e "${green}Admin user created with random password: ${ADMIN_PASSWORD}${reset}"
+
 
     # Create server_details table
     sqlite3 $DB_PATH "CREATE TABLE IF NOT EXISTS server_details (
@@ -137,7 +137,7 @@ NGINX_CONFIG="server {
     listen 80;
     server_name _;
 
-    root /home/VidiQ/panel/public;
+    root /home/VidiQ/public;
     index index.php index.html;
 
     location / {
@@ -145,7 +145,7 @@ NGINX_CONFIG="server {
     }
 
     location /admin/ {
-        alias /home/VidiQ/panel/admin/;
+        alias /home/VidiQ/admin/;
         index dashboard.php;
         location ~ \.php$ {
             include snippets/fastcgi-php.conf;

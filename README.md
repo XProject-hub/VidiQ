@@ -1,140 +1,86 @@
-### Features
-- Login page at `/index.php`
-- Admin dashboard at `/admin/dashboard.php` with navigation for:
-  - Users
-  - Media
-  - Settings
-  - Logs
-- Secure session-based authentication.
-- Logout functionality via `/logout.php`.
-- Manage Users
-  - View all users.
-  - Add new users.
-  - Edit or delete existing users (coming soon).
-  - Manage Users
-  - View all users.
-  - Add new users.
-  - Edit user details.
-  - Delete users.
-  - Streams Management:
-  - View all streams.
-  - Add new streams.
-  - Edit stream details.
-  - Delete streams.
-- Reseller Management:
-  - View all resellers.
-  - Add new resellers.
-  - Edit reseller details.
-  - Delete resellers.
-- Streams Management:
-  - View all streams.
-  - Add new streams.
-  - Edit stream details.
-  - Delete streams.
-  - Toggle stream status (Active/Inactive).
-  - Streams Management:
-  - View all streams.
-  - Add new streams.
-  - Edit existing streams.
-  - Delete streams.
-  - Toggle stream status (Active/Inactive).
+Description
+An interactive IPTV dashboard with server stats, user management, and advanced analytics. Real-time updates for CPU, RAM, bandwidth, and server connections.
 
-  # Project Name: [Your Project Name]
+Features
+Dashboard: Real-time stats with circular progress bars.
+User Management:
+View all users.
+Add new users.
+Edit or delete existing users (coming soon).
+Role-based access: Admin, Editor, Viewer.
+Server Stats: Fetch and display server resource usage.
+Responsive Design: Fully responsive UI/UX.
+Technologies Used
+Frontend: HTML, CSS, JavaScript
+Backend: PHP, SQLite
+APIs: Custom-built API for server usage stats.
+Installation
+Clone the repository:
 
-## Description
-Brief description of the project, e.g.:
-- An interactive IPTV dashboard with server stats, user management, and advanced analytics.
-- Real-time updates for CPU, RAM, bandwidth, and server connections.
+git clone https://github.com/YourUsername/YourRepository.git
+Navigate to the project directory:
 
-## Features
-- **Dashboard**: Real-time stats with circular progress bars.
-- **User Management**: Add, edit, and manage user accounts.
-- **Server Stats**: Fetch and display server resource usage.
-- **Responsive Design**: Fully responsive UI/UX.
+cd YourProjectName
+Install dependencies (if any):
 
-## Technologies Used
-- **Frontend**: HTML, CSS, JavaScript
-- **Backend**: PHP, SQLite
-- **APIs**: Custom-built API for server usage stats.
+composer install  # if using Composer for PHP packages
+npm install      # if using Node.js packages for frontend
+Set up database (SQLite, MySQL, etc.):
 
-## Installation
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/YourUsername/YourRepository.git
+Create a SQLite database file or configure the MySQL connection.
+Update config.php with your database credentials.
+Run the application:
 
-## User Management
-
+php -S localhost:8000 public/
+User Management
 This feature provides the ability to manage users (add, edit, delete) from the admin panel.
 
-### Endpoints
-- `GET /api/user_api.php`: Fetch all users.
-- `POST /api/user_api.php`: Add a new user.
-- `PUT /api/user_api.php`: Update an existing user.
-- `DELETE /api/user_api.php`: Delete a user.
+Endpoints
+GET /api/user_api.php: Fetch all users.
+POST /api/user_api.php: Add a new user.
+Body:
+{
+  "username": "example",
+  "email": "example@example.com",
+  "password": "password",
+  "role": "Viewer"
+}
+PUT /api/user_api.php: Update an existing user's details and/or role.
+Body:
+{
+  "id": 1,
+  "email": "new@example.com",
+  "password": "newpassword",
+  "role": "Editor"
+}
+DELETE /api/user_api.php: Delete a user by ID.
+Body:
+{
+  "id": 1
+}
+Steps
+Navigate to admin/dashboard.php for the admin dashboard.
+Log in using credentials provided or create a new admin account from /index.php.
+Access /admin/user_management.php for managing users.
+Use the API endpoints listed above to add, edit, and delete users.
+File Structure
+Admin Dashboard:
+/admin/dashboard.php: Main dashboard with navigation links.
+/admin/user_management.php: Interface for user management.
+API Endpoints:
+/api/user_api.php: Handles all CRUD operations.
+JavaScript Logic:
+/public/js/user_management.js: Contains JavaScript logic for interactions.
+CSS Styles:
+/public/css/style.css: Styles for the dashboard and modal.
+Database Schema
+Ensure your users table includes columns such as id, username, email, password, and role.
 
-### Steps
-1. Navigate to `/admin/users/user_management.php` for user management.
-2. Add, edit, or delete users using the interface.
-
-### File Structure
-- `/admin/users/user_management.php`: User management interface.
-- `/api/user_api.php`: API for user CRUD operations.
-- `/public/js/user_management.js`: JavaScript logic for user management.
-- `/public/css/style.css`: Contains modal and table styles.
-## User Management API
-
-### Endpoints
-- **GET** `/api/user_api.php`: Fetch all users.
-- **POST** `/api/user_api.php`: Add a new user.
-  - **Body** (JSON):
-    ```json
-    {
-      "username": "example",
-      "email": "example@example.com",
-      "password": "password"
-    }
-    ```
-- **PUT** `/api/user_api.php`: Update user details.
-  - **Body** (JSON):
-    ```json
-    {
-      "id": 1,
-      "email": "new@example.com",
-      "password": "newpassword"
-    }
-    ```
-- **DELETE** `/api/user_api.php`: Delete a user.
-  - **Body** (JSON):
-    ```json
-    {
-      "id": 1
-    }
-    ```
-## User Role Management
-
-### API Endpoints
-- **GET** `/api/user_api.php`: Fetch all users with roles.
-- **POST** `/api/user_api.php`: Add a new user (username, email, password, role).
-- **PUT** `/api/user_api.php`: Update user details (id, email, password, role).
-- **DELETE** `/api/user_api.php`: Delete a user by ID.
-
-### Frontend
-- **User Management**: Accessible via `/admin/user_management.php`.
-- **Role Support**: Assign roles (`Admin`, `Editor`, `Viewer`) to users.
-
-### Database
-Ensure `role` column exists in the `users` table:
-```sql
-ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'Viewer';
-### User Management System
-The system supports role-based access:
-- **Roles:** Admin, Editor, Viewer.
-
-#### API Endpoints
-1. **GET** `/api/user_api.php` - Fetch all users.
-2. **POST** `/api/user_api.php` - Add a new user.
-   - Body: `{ "username": "admin", "email": "admin@example.com", "password": "secure", "role": "Admin" }`
-3. **PUT** `/api/user_api.php` - Update user details.
-   - Body: `{ "id": 1, "email": "new@example.com", "password": "newpass", "role": "Editor" }`
-4. **DELETE** `/api/user_api.php` - Delete a user.
-   - Body: `{ "id": 1 }`
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'Viewer'
+);
+This structure provides a clear, organized overview of your project, making it easy for developers to understand and navigate the features and implementation details.
