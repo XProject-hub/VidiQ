@@ -22,26 +22,38 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install -y nginx mysql-server php-fpm php-mysql git unzip curl sqlite3 php-sqlite3
 
 # Configure MySQL
-MYSQL_ROOT_PASSWORD=$(openssl rand -base64 12)
+MYSQL_ROOT_PASSWORD=""
 VIDIQ_DB_PASSWORD=$(openssl rand -base64 12)
 echo -e "${green}Configuring MySQL...${reset}"
 sudo systemctl enable --now mysql
 
-echo -e "${green}Please enter your MySQL root password (leave blank if none):${reset}"
-read -s EXISTING_ROOT_PASSWORD
-if [ -z "$EXISTING_ROOT_PASSWORD" ]; then
-    EXISTING_ROOT_PASSWORD_OPTION=""
+# Prompt for existing MySQL root password or create a new one
+read -sp "Enter MySQL root password (leave blank for a new random password): " MYSQL_ROOT_PASSWORD_INPUT
+echo
+if [ -z "$MYSQL_ROOT_PASSWORD_INPUT" ]; then
+    MYSQL_ROOT_PASSWORD=$(openssl rand -base64 12)
+    echo -e "${green}Setting a new MySQL root password...${reset}"
+    sudo mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${MYSQL_ROOT_PASSWORD}'; FLUSH PRIVILEGES;"
 else
-    EXISTING_ROOT_PASSWORD_OPTION="-p$EXISTING_ROOT_PASSWORD"
+    MYSQL_ROOT_PASSWORD="$MYSQL_ROOT_PASSWORD_INPUT"
 fi
 
-sudo mysql $EXISTING_ROOT_PASSWORD_OPTION -e "CREATE DATABASE vidiq CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-sudo mysql $EXISTING_ROOT_PASSWORD_OPTION -e "CREATE USER 'vidiq'@'localhost' IDENTIFIED BY '${VIDIQ_DB_PASSWORD}';"
-sudo mysql $EXISTING_ROOT_PASSWORD_OPTION -e "GRANT ALL PRIVILEGES ON vidiq.* TO 'vidiq'@'localhost'; FLUSH PRIVILEGES;"
+# Test MySQL connection
+echo -e "${green}Testing MySQL connection...${reset}"
+mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "SELECT 1;" || {
+    echo -e "${red}Failed to connect to MySQL with the provided root password.${reset}"
+    exit 1
+}
+
+# Create VidiQ database and user
+echo -e "${green}Creating VidiQ database and user...${reset}"
+mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS vidiq CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE USER IF NOT EXISTS 'vidiq'@'localhost' IDENTIFIED BY '${VIDIQ_DB_PASSWORD}';"
+mysql -u root -p"$MYSQL_ROOT_PASSWORD" -e "GRANT ALL PRIVILEGES ON vidiq.* TO 'vidiq'@'localhost'; FLUSH PRIVILEGES;"
 
 # Set up project directory
-BASE_DIR="/home/vidiq"
-echo -e "${green}Setting up project directory...${reset}"
+BASE_DIR="/home/VidiQ"
+echo -e "${green}Setting up project directory at ${BASE_DIR}...${reset}"
 sudo mkdir -p $BASE_DIR
 sudo chown -R $USER:$USER $BASE_DIR
 sudo chmod -R 755 $BASE_DIR
