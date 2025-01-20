@@ -28,12 +28,17 @@ VIDIQ_DB_NAME="vidiq_$(openssl rand -hex 4)"
 ADMIN_EMAIL="admin@example.com"
 ADMIN_PASSWORD=$(openssl rand -base64 12)
 
-# Stop MySQL service to ensure proper reset
+# Reset MySQL root password
 echo -e "${green}Resetting MySQL root password...${reset}"
+# Ensure the MySQL socket directory exists
+sudo mkdir -p /var/run/mysqld
+sudo chown mysql:mysql /var/run/mysqld
+
+# Start MySQL in safe mode for resetting root password
 sudo systemctl stop mysql
 sudo mysqld_safe --skip-grant-tables & sleep 5
 
-# Reset MySQL root password
+# Reset root password
 mysql -u root <<EOF
 FLUSH PRIVILEGES;
 ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
