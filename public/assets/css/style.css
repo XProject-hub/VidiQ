@@ -1,4 +1,4 @@
-/* Reset and Base Styles */
+/* Reset & Base Styles */
 * {
     margin: 0;
     padding: 0;
@@ -6,115 +6,164 @@
 }
 
 body {
-    font-family: 'Open Sans', sans-serif;
     height: 100vh;
+    font-family: "Open Sans", sans-serif;
+    background: linear-gradient(120deg, #3a7bd5, #00d2ff, #ff4b2b, #ff416c);
+    background-size: 400% 400%;
+    animation: swirlBg 15s ease infinite;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, #1F1C2C, #928DAB);
-    animation: bgAnimation 10s ease infinite;
+    position: relative;
+    overflow: hidden;
 }
 
-/* Background Animation */
-@keyframes bgAnimation {
+/* Keyframe for swirling background animation */
+@keyframes swirlBg {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
 }
 
-/* Centered Login Container */
-.login-container {
-    background: rgba(50, 50, 50, 0.85); /* Darker background */
-    width: 320px;
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
-    text-align: center;
-    animation: fadeInScale 1.2s ease-out;
+/* Decorative Floating Shapes */
+.decorative-shape {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: floatShapes 10s ease-in-out infinite alternate;
 }
 
-/* Login Container Animation */
-@keyframes fadeInScale {
-    from {
-        opacity: 0;
-        transform: scale(0.8);
+/* Each shape has different size, color, position, and animation delay */
+.shape1 {
+    width: 300px;
+    height: 300px;
+    top: -100px;
+    left: -100px;
+    background: radial-gradient(circle at center, #ffffff 10%, #ff416c 90%);
+    animation-delay: 0s;
+}
+.shape2 {
+    width: 400px;
+    height: 400px;
+    bottom: -150px;
+    right: -150px;
+    background: radial-gradient(circle at center, #2193b0 10%, #6dd5ed 90%);
+    animation-delay: 3s;
+}
+
+/* Floating shapes animation (vertical + slight scale) */
+@keyframes floatShapes {
+    0% {
+        transform: translateY(0) scale(1);
     }
+    100% {
+        transform: translateY(50px) scale(1.1);
+    }
+}
+
+/* Glassy Login Container */
+.login-container {
+    position: relative;
+    z-index: 1;
+    width: 340px;
+    min-height: 480px;
+    padding: 30px 25px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(15px);
+    border-radius: 15px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    animation: fadeInUp 1s ease forwards;
+    transform: translateY(40px);
+    opacity: 0;
+}
+
+/* Container entrance animation */
+@keyframes fadeInUp {
     to {
         opacity: 1;
-        transform: scale(1);
+        transform: translateY(0);
     }
 }
 
-/* Logo Animation */
-.logo {
+/* VidiQ Logo */
+.vidiq-logo {
     width: 100px;
-    margin-bottom: 20px;
-    animation: bounce 2s infinite;
-}
-
-@keyframes bounce {
-    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-10px); }
-    60% { transform: translateY(-5px); }
-}
-
-/* Header Styles */
-.login-container h1 {
-    font-size: 24px;
-    color: #fff;  /* White text for contrast */
-    margin-bottom: 20px;
-}
-
-/* Input Group Styles */
-.input-group {
-    text-align: left;
     margin-bottom: 15px;
+    animation: pulseLogo 3s infinite;
+}
+
+/* Logo subtle pulse animation */
+@keyframes pulseLogo {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Title */
+.login-title {
+    color: #fff;
+    font-size: 24px;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Error Message */
+.error {
+    color: #ff9a9a;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+/* Form Layout */
+.login-form {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+/* Input Group */
+.input-group {
+    margin-bottom: 15px;
+    text-align: left;
 }
 
 .input-group label {
-    display: block;
+    color: #f0f0f0;
+    font-size: 14px;
     margin-bottom: 5px;
-    color: #ccc; /* Lighter label color */
-    font-weight: 500;
+    display: inline-block;
 }
 
 .input-group input {
     width: 100%;
     padding: 10px;
-    border: 1px solid #555;
-    border-radius: 5px;
-    transition: border-color 0.3s;
+    border-radius: 8px;
+    border: 1px solid #ccc;
     background: #fff;
-    color: #333;
+    font-size: 14px;
+    transition: border-color 0.3s;
 }
 
 .input-group input:focus {
-    border-color: #7B68EE;
+    border-color: #00d2ff;
     outline: none;
 }
 
-/* Button Styles */
+/* Login Button */
 .login-btn {
-    width: 100%;
-    padding: 10px;
-    background: #7B68EE;
+    padding: 12px;
     border: none;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #ff416c, #ff4b2b);
     color: #fff;
+    font-weight: 600;
     font-size: 16px;
-    border-radius: 5px;
     cursor: pointer;
-    transition: background 0.3s, transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .login-btn:hover {
-    background: #6A5ACD;
     transform: translateY(-2px);
-}
-
-/* Error Message Styles */
-.error {
-    color: #ff5e5e;
-    margin-bottom: 15px;
-    font-size: 14px;
-    text-align: center;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
 }

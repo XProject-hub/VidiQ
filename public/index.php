@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($mysqli->connect_error) {
         $error = "Database connection error: " . $mysqli->connect_error;
     } else {
-        // First, check the admin table
+        // Check admin table
         $stmt = $mysqli->prepare("SELECT id, username FROM admin WHERE username = ? AND password = MD5(?)");
         if ($stmt) {
             $stmt->bind_param("ss", $username, $password);
@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $stmt->close();
         }
-        // If not found in admin table, check the users table
+        // Check users table (reseller, subreseller)
         $stmt = $mysqli->prepare("SELECT id, username, role FROM users WHERE username = ? AND password = MD5(?)");
         if ($stmt) {
             $stmt->bind_param("ss", $username, $password);
@@ -65,20 +65,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8" />
     <title>VidiQ Login</title>
     <link rel="stylesheet" href="/assets/css/style.css" />
-    <style>
-        body { background-color: #121212; color: #e0e0e0; font-family: Arial, sans-serif; }
-        .login-container { width: 400px; margin: 100px auto; padding: 20px; background-color: #1e1e1e; border-radius: 5px; }
-        .login-container h1 { text-align: center; color: #00ffff; }
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; margin-bottom: 5px; }
-        .input-group input { width: 100%; padding: 10px; border: 1px solid #333; background-color: #2c2c2c; color: #e0e0e0; }
-        .login-btn { width: 100%; padding: 10px; background-color: #00ffff; border: none; color: #121212; font-weight: bold; cursor: pointer; }
-        .error { background-color: #ff4d4d; padding: 10px; text-align: center; margin-bottom: 15px; }
-    </style>
 </head>
 <body>
+    <!-- Background Video -->
+    <video autoplay loop muted playsinline class="bg-video">
+        <source src="/assets/video/bg.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
     <div class="login-container">
-        <img src="/assets/images/logo.png" alt="VidiQ Logo" style="display:block; margin: 0 auto 20px auto;" />
+        <img src="/assets/images/logo.png" alt="VidiQ Logo" class="vidiq-logo">
         <h1>Login</h1>
         <?php if (!empty($error)): ?>
             <div class="error"><?php echo htmlspecialchars($error); ?></div>
