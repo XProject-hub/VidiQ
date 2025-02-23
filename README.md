@@ -25,3 +25,27 @@ The panel now includes basic channel streaming functionality. You can:
 - **Manage Streams:** View all added channels, and preview them via an integrated HTML5 video player.
 
 To access these features, log in as an admin and navigate to the Streams section.
+
+## User Management
+
+### Login
+
+- **Main Login:**  
+  Users access the login page at `http://<server-ip>`.  
+  The system first checks the **admin** table for admin credentials. If not found, it checks the **users** table (which holds resellers and subresellers).  
+  Based on the role, users are redirected to:
+  - **Admins:** `/admin/dashboard.php`
+  - **Resellers:** `/reseller/dashboard.php`
+  - **Subresellers:** `/subreseller/dashboard.php`
+
+### Admin Capabilities
+
+- From the **Admin Dashboard**, an admin can:
+  - **Add Additional Admins:** Via `/admin/manage_admins.php`
+  - **Add Resellers:** Via `/admin/manage_resellers.php`
+  - And later manage other aspects of the panel.
+
+### Reseller Capabilities
+
+- **Resellers** can log in and add **Subresellers** via `/reseller/add_subreseller.php`.
+

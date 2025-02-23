@@ -1,40 +1,32 @@
 <?php
-// /admin/dashboard.php
 session_start();
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
-    header("Location: login.php");
+    header("Location: /public/index.php");
     exit;
 }
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Dashboard - VidiQ</title>
-  <link rel="stylesheet" href="assets/css/style.css">
-  <style>
-    /* Additional styles can be added in assets/css/style.css */
-    body { background-color: #121212; color: #e0e0e0; font-family: Arial, sans-serif; }
-    header { background-color: #1e1e1e; padding: 10px; }
-    nav ul { list-style-type: none; padding: 0; }
-    nav ul li { display: inline-block; position: relative; margin-right: 20px; }
-    nav ul li ul { display: none; position: absolute; background: #1e1e1e; padding: 10px; }
-    nav ul li:hover ul { display: block; }
-    nav a { color: #00ffff; text-decoration: none; }
-  </style>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard - VidiQ</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
-  <header>
-    <?php include 'navigation.php'; ?>
-  </header>
-  <main>
-    <h1>Welcome, Admin</h1>
-    <p>Dashboard Overview:</p>
-    <ul>
-      <li>Live Connections</li>
-      <li>Activity Log</li>
-      <li>Process Monitor</li>
-    </ul>
-  </main>
+    <header>
+        <h1>Admin Dashboard</h1>
+        <nav>
+            <ul>
+                <li><a href="/admin/dashboard.php">Dashboard</a></li>
+                <li><a href="/admin/manage_admins.php">Manage Admins</a></li>
+                <li><a href="/admin/manage_resellers.php">Manage Resellers</a></li>
+                <!-- Other admin links -->
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <p>Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?>!</p>
+        <!-- Additional dashboard content here -->
+    </main>
 </body>
 </html>

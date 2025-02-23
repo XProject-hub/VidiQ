@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once __DIR__ . '/../config/config.php'; // Adjust path if needed
+require_once __DIR__ . '/../config/config.php';
 
 $error = '';
 
@@ -8,14 +8,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = trim($_POST['password'] ?? '');
 
-    // Connect to database using credentials from config.php
     $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     if ($mysqli->connect_error) {
         $error = "Database connection error: " . $mysqli->connect_error;
     } else {
-        // We assume that all users (admin, reseller, subreseller) are stored in one table (e.g., "users")
-        // with a column "role" that contains one of the values: "admin", "reseller", or "subreseller".
-        // Here, we're using MD5 for demonstration; replace with a secure password hashing mechanism in production.
+        // First, check the admin table
+        $stmt = $mysqli->prepare("SELECT id, username FROM admin WHERE username = ? AND password = MD5(?)");
+        if ($stmt) {
+            $stmt->bind_param("ss", $username, $password);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($result->num_rows === 1) {
+                $user = $result->fetch_assoc();
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['role'] = 'admin';
+                header("Location: /admin/dashboard.php");
+                exit;
+            }
+            $stmt->close();
+        }
+        // If not found in admin table, check the users table
         $stmt = $mysqli->prepare("SELECT id, username, role FROM users WHERE username = ? AND password = MD5(?)");
         if ($stmt) {
             $stmt->bind_param("ss", $username, $password);
@@ -26,19 +39,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['role'] = $user['role'];
-
-                // Redirect based on role
-                if ($user['role'] === 'admin') {
-                    header("Location: /admin/dashboard.php");
-                    exit;
-                } elseif ($user['role'] === 'reseller') {
+                if ($user['role'] === 'reseller') {
                     header("Location: /reseller/dashboard.php");
                     exit;
                 } elseif ($user['role'] === 'subreseller') {
                     header("Location: /subreseller/dashboard.php");
                     exit;
                 } else {
-                    $error = "Your account does not have a valid role.";
+                    $error = "Invalid role.";
                 }
             } else {
                 $error = "Invalid username or password.";
@@ -70,7 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="login-container">
-        <img src="/assets/images/logo.png" alt="VidiQ Logo" class="logo" style="display:block; margin: 0 auto 20px auto;" />
+        <img src="/assets/images/logo.png" alt="VidiQ Logo" style="display:block; margin: 0 auto 20px auto;" />
         <h1>Login</h1>
         <?php if (!empty($error)): ?>
             <div class="error"><?php echo htmlspecialchars($error); ?></div>
