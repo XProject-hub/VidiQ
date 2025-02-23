@@ -5,7 +5,7 @@
  * A comprehensive installer for the VidiQ IPTV Panel.
  * This version:
  * - Installs required system packages: Nginx, PHP-FPM, PHP-MySQL, Git, MySQL Server and Client.
- * - Generates an Nginx configuration file listening on port 1323.
+ * - Automatically detects the installed PHP version and generates an Nginx configuration file listening on port 1323.
  * - Prompts for database credentials and creates the database and user automatically.
  * - Writes /config/config.php with your chosen database credentials.
  * - Sets up the MySQL database schema (from schema.sql).
@@ -20,14 +20,25 @@
 // --- Helper Functions ---
 
 /**
- * Generate the Nginx configuration file content based on provided parameters.
- * Now uses port 1323.
+ * Automatically detect the PHP version (major.minor) from the command line.
  *
- * @param string $domain
- * @param string $phpVersion
  * @return string
  */
-function generate_nginx_config($domain, $phpVersion) {
+function get_php_version() {
+    // Run PHP command to get version like "8.1" or "7.4"
+    $version = trim(shell_exec("php -r 'echo PHP_MAJOR_VERSION.\".\".PHP_MINOR_VERSION;'"));
+    return $version ? $version : "7.4"; // fallback to 7.4 if detection fails
+}
+
+/**
+ * Generate the Nginx configuration file content based on provided parameters.
+ * Uses the detected PHP version for the PHP-FPM socket.
+ *
+ * @param string $domain
+ * @return string
+ */
+function generate_nginx_config($domain) {
+    $phpVersion = get_php_version();
     $phpSocket = "unix:/run/php/php{$phpVersion}-fpm.sock";
     $config = <<<NGINXCONF
 server {
@@ -81,9 +92,19 @@ function is_root() {
  * @return string
  */
 function get_server_ip() {
-    // Attempt to get the IP using the host name.
-    $ip = gethostbyname(gethostname());
-    return $ip;
+    // Try using hostname -I to get the network IP(s)
+    $ip = trim(shell_exec("hostname -I"));
+    if ($ip) {
+        // Return the first non-loopback IP
+        $ips = explode(" ", $ip);
+        foreach ($ips as $candidate) {
+            if ($candidate !== '127.0.0.1' && !empty($candidate)) {
+                return $candidate;
+            }
+        }
+    }
+    // Fallback to gethostbyname if necessary
+    return gethostbyname(gethostname());
 }
 
 /**
@@ -138,9 +159,7 @@ function run_cli_mode() {
     echo "Step 2: Generating Nginx configuration file...\n";
     echo "Enter your domain (e.g., yourdomain.com): ";
     $domain = trim(fgets(STDIN));
-    echo "Enter your PHP version (e.g., 7.4): ";
-    $phpVersion = trim(fgets(STDIN));
-    $nginxConfig = generate_nginx_config($domain, $phpVersion);
+    $nginxConfig = generate_nginx_config($domain);
     $configFile = "nginx.conf";
     if (file_put_contents($configFile, $nginxConfig) !== false) {
         echo "Nginx configuration file generated successfully as {$configFile}.\n";
