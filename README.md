@@ -1,0 +1,27 @@
+# VidiQ IPTV Streaming Panel
+
+This project is a custom IPTV streaming panel built from scratch using PHP, Python3, and JavaScript. It is inspired by Xtreamcodes/xtream-ui and uses a dark theme with cyan highlights.
+
+## Installation
+
+1. **Environment Setup:**
+   - VPS server running Ubuntu (or your preferred distro).
+   - Nginx installed and configured.
+   - PHP 7+ (or PHP 8) installed.
+   - MySQL server installed.
+   - Python3 installed.
+
+2. **Clone the Repository:**
+   ```bash
+   cd /home/
+   git clone https://github.com/yourusername/vidiq.git
+   cd vidiq
+
+
+   ## Channel Streaming
+
+The panel now includes basic channel streaming functionality. You can:
+- **Add Streams:** Use the "Add New Stream" page in the admin section to create a new channel by specifying its name, URL, and category.
+- **Manage Streams:** View all added channels, and preview them via an integrated HTML5 video player.
+
+To access these features, log in as an admin and navigate to the Streams section.
