@@ -171,7 +171,7 @@ function run_cli_mode() {
     // Step 3: Clone Panel Files from GitHub (Simulated)
     echo "Step 3: Cloning panel files from GitHub...\n";
     // Replace the URL below with your repository URL.
-    run_command("git clone https://github.com/yourusername/vidiq.git /home/vidiq");
+    run_command("git clone https://github.com/XProject-hub/VidiQ.git /home/vidiq");
 
     // Step 4: Database Setup and Panel Configuration
     echo "Step 4: Database Setup and Panel Configuration\n";
