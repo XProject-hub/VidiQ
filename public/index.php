@@ -8,14 +8,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = trim($_POST['username'] ?? '');
     $password = trim($_POST['password'] ?? '');
 
-    // Dummy authentication logic: replace with your real authentication
-    if ($username === 'admin' && $password === 'admin') {
-        // For demonstration, set a session variable and redirect to dashboard
-        $_SESSION['user'] = 'admin';
-        header('Location: /admin/dashboard.php');
-        exit;
+    // Connect to database using credentials from config.php
+    $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    if ($mysqli->connect_error) {
+        $error = "Database connection error: " . $mysqli->connect_error;
     } else {
-        $error = "Invalid username or password.";
+        // Using MD5 here for demonstration. Replace with a secure method in production.
+        $stmt = $mysqli->prepare("SELECT id, username, role FROM admin WHERE username = ? AND password = MD5(?)");
+        if ($stmt) {
+            $stmt->bind_param("ss", $username, $password);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($result->num_rows === 1) {
+                $user = $result->fetch_assoc();
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['username'] = $user['username'];
+                $_SESSION['role'] = $user['role'];
+
+                if ($user['role'] === 'admin') {
+                    header("Location: /admin/dashboard.php");
+                    exit;
+                } elseif ($user['role'] === 'reseller') {
+                    header("Location: /reseller/dashboard.php");
+                    exit;
+                } elseif ($user['role'] === 'subreseller') {
+                    header("Location: /subreseller/dashboard.php");
+                    exit;
+                } else {
+                    $error = "Your account does not have a valid role.";
+                }
+            } else {
+                $error = "Invalid username or password.";
+            }
+            $stmt->close();
+        } else {
+            $error = "Database query error.";
+        }
+        $mysqli->close();
     }
 }
 ?>
@@ -36,23 +65,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="post" action="">
             <div class="input-group">
                 <label for="username">Username</label>
-                <input 
-                    type="text" 
-                    id="username" 
-                    name="username" 
-                    placeholder="Enter username" 
-                    required 
-                />
+                <input type="text" id="username" name="username" placeholder="Enter username" required />
             </div>
             <div class="input-group">
                 <label for="password">Password</label>
-                <input 
-                    type="password" 
-                    id="password" 
-                    name="password" 
-                    placeholder="Enter password" 
-                    required 
-                />
+                <input type="password" id="password" name="password" placeholder="Enter password" required />
             </div>
             <button type="submit" class="login-btn">Log In</button>
         </form>
