@@ -5,14 +5,15 @@
  * A comprehensive installer for the VidiQ IPTV Panel.
  * This version:
  * - Installs required system packages: Nginx, PHP-FPM, PHP-MySQL, Git, MySQL Server and Client.
- * - Automatically detects the installed PHP version and generates an Nginx configuration file listening on port 1323.
+ * - Automatically detects the installed PHP version and generates an Nginx configuration file listening on port 80.
+ * - Automatically copies the generated configuration to /etc/nginx/sites-available/vidiq, creates a symlink in /etc/nginx/sites-enabled, tests, and reloads Nginx.
  * - Prompts for database credentials and creates the database and user automatically.
  * - Writes /config/config.php with your chosen database credentials.
  * - Sets up the MySQL database schema (from schema.sql).
  * - Automatically creates an "admin" table if it doesn't exist.
  * - Prompts for panel admin login details and inserts an admin record.
  * - Clones the panel files from GitHub.
- * - Displays the server IP so you can access the panel login page at http://<server-ip>:1323.
+ * - Displays the server IP so you can access the panel login page at http://<server-ip>, which will serve /home/vidiq/public/index.php.
  *
  * Run this script as root in CLI mode.
  */
@@ -25,14 +26,13 @@
  * @return string
  */
 function get_php_version() {
-    // Run PHP command to get version like "8.1" or "7.4"
     $version = trim(shell_exec("php -r 'echo PHP_MAJOR_VERSION.\".\".PHP_MINOR_VERSION;'"));
     return $version ? $version : "7.4"; // fallback to 7.4 if detection fails
 }
 
 /**
  * Generate the Nginx configuration file content based on provided parameters.
- * Uses the detected PHP version for the PHP-FPM socket.
+ * Uses the detected PHP version for the PHP-FPM socket and listens on port 80.
  *
  * @param string $domain
  * @return string
@@ -42,7 +42,7 @@ function generate_nginx_config($domain) {
     $phpSocket = "unix:/run/php/php{$phpVersion}-fpm.sock";
     $config = <<<NGINXCONF
 server {
-    listen 1323;
+    listen 80;
     server_name {$domain};
     root /home/vidiq/public;
     index index.php;
@@ -95,7 +95,6 @@ function get_server_ip() {
     // Try using hostname -I to get the network IP(s)
     $ip = trim(shell_exec("hostname -I"));
     if ($ip) {
-        // Return the first non-loopback IP
         $ips = explode(" ", $ip);
         foreach ($ips as $candidate) {
             if ($candidate !== '127.0.0.1' && !empty($candidate)) {
@@ -103,7 +102,6 @@ function get_server_ip() {
             }
         }
     }
-    // Fallback to gethostbyname if necessary
     return gethostbyname(gethostname());
 }
 
@@ -143,7 +141,6 @@ function run_cli_mode() {
     echo "VidiQ Comprehensive Installer (CLI Mode)\n";
     echo "=========================================\n\n";
 
-    // Check for root privileges
     if (!is_root()) {
         echo "WARNING: Please run this script as root (or with sudo).\n";
         exit(1);
@@ -152,7 +149,6 @@ function run_cli_mode() {
     // Step 1: Install system dependencies (Nginx, PHP-FPM, PHP-MySQL, Git, MySQL)
     echo "Step 1: Installing system dependencies...\n";
     run_command("apt-get update");
-    // Install Nginx, PHP-FPM, PHP-MySQL, Git, MySQL Server and Client
     run_command("apt-get install -y nginx php-fpm php-mysql git mysql-server mysql-client");
 
     // Step 2: Generate Nginx configuration file
@@ -163,20 +159,23 @@ function run_cli_mode() {
     $configFile = "nginx.conf";
     if (file_put_contents($configFile, $nginxConfig) !== false) {
         echo "Nginx configuration file generated successfully as {$configFile}.\n";
-        echo "Please move this file to your Nginx configuration directory (e.g., /etc/nginx/sites-available) and enable it accordingly.\n\n";
     } else {
         echo "Error: Unable to write the Nginx configuration file.\n";
     }
+    
+    // Step 2.5: Automatically install and enable Nginx site configuration
+    echo "Step 2.5: Installing and enabling Nginx site configuration...\n";
+    run_command("cp {$configFile} /etc/nginx/sites-available/vidiq");
+    run_command("ln -sf /etc/nginx/sites-available/vidiq /etc/nginx/sites-enabled/vidiq");
+    run_command("nginx -t");
+    run_command("systemctl reload nginx");
 
     // Step 3: Clone Panel Files from GitHub (Simulated)
     echo "Step 3: Cloning panel files from GitHub...\n";
-    // Replace the URL below with your repository URL.
     run_command("git clone https://github.com/XProject-hub/VidiQ.git /home/vidiq");
 
     // Step 4: Database Setup and Panel Configuration
     echo "Step 4: Database Setup and Panel Configuration\n";
-
-    // Ask for database details
     echo "Enter your database host [default: localhost]: ";
     $dbHost = trim(fgets(STDIN));
     if (empty($dbHost)) { $dbHost = 'localhost'; }
@@ -190,21 +189,18 @@ function run_cli_mode() {
     echo "Enter the desired panel database password: ";
     $dbPass = trim(fgets(STDIN));
 
-    // Prompt for MySQL root password to create database and user
     echo "Enter MySQL root password (for creating database and user): ";
     $mysqlRootPass = trim(fgets(STDIN));
 
-    // Write the configuration file with the provided details
     write_config_file($dbHost, $dbUser, $dbPass, $dbName, $domain);
 
-    // Create the database and user automatically using MySQL command line with root privileges
     echo "Creating database and user...\n";
     run_command("mysql -uroot -p{$mysqlRootPass} -e \"CREATE DATABASE IF NOT EXISTS {$dbName};\"");
     run_command("mysql -uroot -p{$mysqlRootPass} -e \"CREATE USER IF NOT EXISTS '{$dbUser}'@'localhost' IDENTIFIED BY '{$dbPass}';\"");
     run_command("mysql -uroot -p{$mysqlRootPass} -e \"GRANT ALL PRIVILEGES ON {$dbName}.* TO '{$dbUser}'@'localhost'; FLUSH PRIVILEGES;\"");
 
     // Step 5: Setup MySQL Database Schema
-    echo "Setting up the MySQL database schema...\n";
+    echo "Step 5: Setting up the MySQL database schema...\n";
     $schemaPath = __DIR__ . '/schema.sql';
     if (!file_exists($schemaPath)) {
         echo "Error: schema.sql file not found in the install directory.\n";
@@ -216,7 +212,6 @@ function run_cli_mode() {
         } else {
             if ($mysqli->multi_query($schema)) {
                 echo "Database schema installed successfully.\n";
-                // Flush multi_query results
                 while ($mysqli->next_result()) {;}
             } else {
                 echo "Error installing database schema: " . $mysqli->error . "\n";
@@ -232,12 +227,10 @@ function run_cli_mode() {
     echo "Enter the desired admin password: ";
     $adminPass = trim(fgets(STDIN));
     
-    // Insert admin credentials into the database.
     $mysqli = new mysqli($dbHost, $dbUser, $dbPass, $dbName);
     if ($mysqli->connect_error) {
         echo "Connection failed when creating admin login: " . $mysqli->connect_error . "\n";
     } else {
-        // Create the admin table if it doesn't exist.
         $createTableQuery = "CREATE TABLE IF NOT EXISTS admin (
             id INT AUTO_INCREMENT PRIMARY KEY,
             username VARCHAR(255) NOT NULL,
@@ -246,8 +239,6 @@ function run_cli_mode() {
         if (!$mysqli->query($createTableQuery)) {
             echo "Error creating admin table: " . $mysqli->error . "\n";
         }
-        
-        // Note: In production, use a stronger password hashing mechanism.
         $adminUserEscaped = $mysqli->real_escape_string($adminUser);
         $adminPassEscaped = $mysqli->real_escape_string($adminPass);
         $insertQuery = "INSERT INTO admin (username, password) VALUES ('{$adminUserEscaped}', MD5('{$adminPassEscaped}'))";
@@ -259,17 +250,15 @@ function run_cli_mode() {
         $mysqli->close();
     }
     
-    // Final Step: Display server IP and instructions
     $serverIP = get_server_ip();
     echo "\nInstallation complete.\n";
-    echo "Access your VidiQ IPTV Panel login page at: http://{$serverIP}:1323\n";
+    echo "Access your VidiQ IPTV Panel login page at: http://{$serverIP}\n";
 }
 
 // --- Main Execution ---
 if (php_sapi_name() === 'cli') {
     run_cli_mode();
 } else {
-    // Browser mode implementation would follow similar steps using HTML forms.
     echo "<p>This installer is intended for CLI mode. Please run it from the command line.</p>";
 }
 ?>
