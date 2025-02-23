@@ -13,8 +13,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($mysqli->connect_error) {
         $error = "Database connection error: " . $mysqli->connect_error;
     } else {
-        // Using MD5 here for demonstration. Replace with a secure method in production.
-        $stmt = $mysqli->prepare("SELECT id, username, role FROM admin WHERE username = ? AND password = MD5(?)");
+        // We assume that all users (admin, reseller, subreseller) are stored in one table (e.g., "users")
+        // with a column "role" that contains one of the values: "admin", "reseller", or "subreseller".
+        // Here, we're using MD5 for demonstration; replace with a secure password hashing mechanism in production.
+        $stmt = $mysqli->prepare("SELECT id, username, role FROM users WHERE username = ? AND password = MD5(?)");
         if ($stmt) {
             $stmt->bind_param("ss", $username, $password);
             $stmt->execute();
@@ -25,6 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['role'] = $user['role'];
 
+                // Redirect based on role
                 if ($user['role'] === 'admin') {
                     header("Location: /admin/dashboard.php");
                     exit;
@@ -54,10 +57,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8" />
     <title>VidiQ Login</title>
     <link rel="stylesheet" href="/assets/css/style.css" />
+    <style>
+        body { background-color: #121212; color: #e0e0e0; font-family: Arial, sans-serif; }
+        .login-container { width: 400px; margin: 100px auto; padding: 20px; background-color: #1e1e1e; border-radius: 5px; }
+        .login-container h1 { text-align: center; color: #00ffff; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; }
+        .input-group input { width: 100%; padding: 10px; border: 1px solid #333; background-color: #2c2c2c; color: #e0e0e0; }
+        .login-btn { width: 100%; padding: 10px; background-color: #00ffff; border: none; color: #121212; font-weight: bold; cursor: pointer; }
+        .error { background-color: #ff4d4d; padding: 10px; text-align: center; margin-bottom: 15px; }
+    </style>
 </head>
 <body>
     <div class="login-container">
-        <img src="assets/images/logo.png" alt="VidiQ Logo" class="logo" />
+        <img src="/assets/images/logo.png" alt="VidiQ Logo" class="logo" style="display:block; margin: 0 auto 20px auto;" />
         <h1>Login</h1>
         <?php if (!empty($error)): ?>
             <div class="error"><?php echo htmlspecialchars($error); ?></div>
