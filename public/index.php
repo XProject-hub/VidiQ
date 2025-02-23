@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body>
     <div class="login-container">
         <img src="assets/images/logo.png" alt="VidiQ Logo" class="logo" />
-        <h1>VidiQ Login</h1>
+        <h1>Login</h1>
         <?php if (!empty($error)): ?>
             <div class="error"><?php echo htmlspecialchars($error); ?></div>
         <?php endif; ?>
