@@ -60,31 +60,34 @@ mkdir -p "${TARGET_DIR}/install"
 cat > "$NGINX_CONFIG" <<EOL
 server {
     listen 80;
-    server_name ${DOMAIN};
-    root ${TARGET_DIR}/public;
+    server_name yourdomain.com;
+    root /home/vidiq/public;
     index index.php;
 
     location / {
-        try_files \$uri \$uri/ /index.php?\$query_string;
+        try_files $uri $uri/ /index.php?$query_string;
     }
 
-    location ~ \.php\$ {
+    location ~ \.php$ {
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/php${PHP_VERSION}-fpm.sock;
+        fastcgi_pass unix:/run/php/php8.1-fpm.sock;
     }
 
+    # Alias for /admin/ requests to files outside the document root
     location /admin/ {
-        alias ${TARGET_DIR}/admin/;
+        alias /home/vidiq/admin/;
         index dashboard.php;
-        try_files \$uri \$uri/ =404;
-    }
+        try_files $uri $uri/ =404;
 
-    location ~ ^/admin/.*\.php\$ {
-        alias ${TARGET_DIR}/admin/;
-        include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/run/php/php${PHP_VERSION}-fpm.sock;
+        location ~ \.php$ {
+            fastcgi_split_path_info ^(.+\.php)(/.+)$;
+            fastcgi_pass unix:/run/php/php8.1-fpm.sock;
+            include fastcgi_params;
+            fastcgi_param SCRIPT_FILENAME $request_filename;
+        }
     }
 }
+
 EOL
 echo -e "${GREEN}Nginx configuration file generated at: $NGINX_CONFIG${NC}"
 
