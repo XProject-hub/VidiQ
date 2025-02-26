@@ -1,11 +1,10 @@
 <?php
 session_start();
-// Restrict access to admin users
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: /index.php");
     exit;
 }
-$username = $_SESSION['username'] ?? 'admin';
+$username = $_SESSION['username'] ?? 'Admin';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -13,40 +12,13 @@ $username = $_SESSION['username'] ?? 'admin';
   <meta charset="UTF-8">
   <title>VidiQ Admin Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- External CSS file for styling -->
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="stylesheet" href="/admin/assets/css/style.css">
 </head>
 <body>
-  <!-- HEADER with horizontal navigation and user dropdown -->
-  <header class="header">
-    <div class="left-section">
-      <div class="logo">
-        <!-- Logo from /admin/assets/images/logo.png -->
-        <img src="/admin/assets/images/logo.png" alt="VidiQ Logo">
-      </div>
-      <nav class="nav-links">
-        <ul>
-          <li><a href="/admin/dashboard.php">Dashboard</a></li>
-          <li><a href="#">Servers</a></li>
-          <li><a href="#">Management</a></li>
-          <li><a href="#">Users</a></li>
-          <li><a href="#">Settings</a></li>
-          <li><a href="#">Logs</a></li>
-        </ul>
-      </nav>
-    </div>
-    <div class="user-info">
-      <span class="user-name"><?php echo htmlspecialchars($username); ?></span>
-      <ul class="dropdown">
-        <li><a href="#">Profile</a></li>
-        <li><a href="#">Account</a></li>
-        <li><a href="#">Logout</a></li>
-      </ul>
-    </div>
-  </header>
-
-  <!-- MAIN CONTENT -->
-  <div class="main-content">
+  <?php include __DIR__ . '/navigation.php'; ?>
+  <main class="main-content">
     <h1>Welcome, <?php echo htmlspecialchars($username); ?>!</h1>
     <div class="widgets">
       <div class="widget">
@@ -62,8 +34,7 @@ $username = $_SESSION['username'] ?? 'admin';
         <p>Recent activity displayed here</p>
       </div>
     </div>
-  </div>
-
+  </main>
   <footer class="footer">
     <p>&copy; <?php echo date("Y"); ?> VidiQ. All rights reserved.</p>
   </footer>
