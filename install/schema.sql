@@ -1,6 +1,6 @@
 -- schema.sql
 
--- Users table for panel accounts
+-- 1. USERS TABLE
 CREATE TABLE IF NOT EXISTS users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(50) NOT NULL UNIQUE,
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Streams table for channels/streams
+-- 2. STREAMS TABLE
 CREATE TABLE IF NOT EXISTS streams (
   id INT AUTO_INCREMENT PRIMARY KEY,
   icon VARCHAR(255) DEFAULT NULL,         -- URL or path to stream icon
@@ -24,29 +24,30 @@ CREATE TABLE IF NOT EXISTS streams (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Admin table for panel admin credentials
+-- 3. ADMIN TABLE
 CREATE TABLE IF NOT EXISTS admin (
   id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(255) NOT NULL,
   password VARCHAR(255) NOT NULL
 );
 
--- Servers table to store real-time server monitoring data
+-- 4. SERVERS TABLE (for real‑time server monitoring)
 CREATE TABLE IF NOT EXISTS servers (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,               -- Server name (e.g., "Main Server")
-  ip VARCHAR(100) NOT NULL,                 -- Real IP address of the server
-  is_main TINYINT DEFAULT 0,                -- 1 if this is the main server
-  cpu_usage INT DEFAULT 0,                  -- CPU usage percentage
-  ram_usage INT DEFAULT 0,                  -- RAM usage percentage
-  bandwidth_usage INT DEFAULT 0,            -- Bandwidth/network usage percentage
-  users INT DEFAULT 0,                      -- Total user count (or online users)
-  live_connections INT DEFAULT 0,           -- Active/live connections
-  down_channels INT DEFAULT 0,              -- Number of channels currently down
-  streams_live INT DEFAULT 0,               -- Number of streams that are live
-  streams_off INT DEFAULT 0,                -- Number of streams that are down
-  input_bw INT DEFAULT 0,                   -- Input bandwidth (e.g., in Mbps)
-  output_bw INT DEFAULT 0,                  -- Output bandwidth (e.g., in Mbps)
-  uptime VARCHAR(50) DEFAULT NULL,          -- Server uptime (e.g., "4d 8h")
+  name VARCHAR(100) NOT NULL,
+  ip VARCHAR(100) NOT NULL,
+  is_main TINYINT DEFAULT 0,
+  cpu_usage INT DEFAULT 0,        -- CPU usage in percent
+  ram_usage INT DEFAULT 0,        -- RAM usage in percent
+  hdd_usage INT DEFAULT 0,        -- HDD usage in percent
+  bandwidth_usage INT DEFAULT 0,  -- optional leftover column
+  users INT DEFAULT 0,
+  live_connections INT DEFAULT 0,
+  down_channels INT DEFAULT 0,
+  streams_live INT DEFAULT 0,
+  streams_off INT DEFAULT 0,
+  input_bw INT DEFAULT 0,         -- input bandwidth usage in percent
+  output_bw INT DEFAULT 0,        -- output bandwidth usage in percent
+  uptime VARCHAR(50) DEFAULT NULL,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

@@ -9,7 +9,107 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
 }
 $username = $_SESSION['username'] ?? 'admin';
 
-// (Optional: handle form submission here if POST)
+// (Optional: Process form submission if POST)
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Retrieve form fields
+    $streamName   = trim($_POST['streamName'] ?? '');
+    $streamURL    = trim($_POST['streamURL'] ?? '');
+    $category     = trim($_POST['category'] ?? '');
+    $bouquets     = trim($_POST['bouquets'] ?? '');
+    $streamLogo   = trim($_POST['streamLogo'] ?? '');
+    $notes        = trim($_POST['notes'] ?? '');
+    
+    // Advanced tab fields (example)
+    $generate_pts       = isset($_POST['generate_pts']) ? 1 : 0;
+    $native_frames      = isset($_POST['native_frames']) ? 1 : 0;
+    $stream_all_codecs  = isset($_POST['stream_all_codecs']) ? 1 : 0;
+    $allow_recording    = isset($_POST['allow_recording']) ? 1 : 0;
+    $allow_rtmp         = isset($_POST['allow_rtmp']) ? 1 : 0;
+    $direct_source      = isset($_POST['direct_source']) ? 1 : 0;
+    $custom_channel_sid = trim($_POST['custom_channel_sid'] ?? '');
+    $minute_delay       = trim($_POST['minute_delay'] ?? '');
+    $ffmpeg_command     = trim($_POST['ffmpeg_command'] ?? '');
+    $ondemand_probesize  = trim($_POST['ondemand_probesize'] ?? '128000');
+    $user_agent         = trim($_POST['user_agent'] ?? 'Vidiq 1.0');
+    $http_proxy         = trim($_POST['http_proxy'] ?? '');
+    $cookie             = trim($_POST['cookie'] ?? '');
+    $headers            = trim($_POST['headers'] ?? '');
+    $transcoding_profile= trim($_POST['transcoding_profile'] ?? '');
+    
+    // Map tab
+    $custom_map         = trim($_POST['custom_map'] ?? '');
+    
+    // Restart tab
+    $days_to_restart    = trim($_POST['days_to_restart'] ?? '');
+    $time_to_restart    = trim($_POST['time_to_restart'] ?? '');
+    
+    // EPG tab
+    $epg_source         = trim($_POST['epg_source'] ?? '');
+    $epg_channel_id     = trim($_POST['epg_channel_id'] ?? '');
+    $epg_language       = trim($_POST['epg_language'] ?? '');
+    
+    // Servers tab
+    $server_tree        = isset($_POST['server_tree']) ? implode(',', $_POST['server_tree']) : '';
+    $on_demand          = isset($_POST['on_demand']) ? 1 : 0;
+    $timeshift_days     = trim($_POST['timeshift_days'] ?? '');
+    $start_stream_now   = isset($_POST['start_stream_now']) ? 1 : 0;
+    
+    // Insert into streams table (example, adjust columns as needed)
+    require_once __DIR__ . '/../../config/config.php';
+    $mysqli = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+    if ($mysqli->connect_error) {
+        die("DB connection error: " . $mysqli->connect_error);
+    }
+    $stmt = $mysqli->prepare("INSERT INTO streams (name, stream_url, category, stream_info) VALUES (?, ?, ?, ?)");
+    if ($stmt) {
+        // For simplicity, we store bouquet, logo, notes into stream_info as JSON (or adjust as needed)
+        $info = json_encode([
+            'bouquets' => $bouquets,
+            'streamLogo' => $streamLogo,
+            'notes' => $notes,
+            // You can add more advanced fields here
+            'advanced' => [
+                'generate_pts' => $generate_pts,
+                'native_frames' => $native_frames,
+                'stream_all_codecs' => $stream_all_codecs,
+                'allow_recording' => $allow_recording,
+                'allow_rtmp' => $allow_rtmp,
+                'direct_source' => $direct_source,
+                'custom_channel_sid' => $custom_channel_sid,
+                'minute_delay' => $minute_delay,
+                'ffmpeg_command' => $ffmpeg_command,
+                'ondemand_probesize' => $ondemand_probesize,
+                'user_agent' => $user_agent,
+                'http_proxy' => $http_proxy,
+                'cookie' => $cookie,
+                'headers' => $headers,
+                'transcoding_profile' => $transcoding_profile,
+            ],
+            'map' => $custom_map,
+            'restart' => [
+                'days_to_restart' => $days_to_restart,
+                'time_to_restart' => $time_to_restart,
+            ],
+            'epg' => [
+                'epg_source' => $epg_source,
+                'epg_channel_id' => $epg_channel_id,
+                'epg_language' => $epg_language,
+            ],
+            'servers' => [
+                'server_tree' => $server_tree,
+                'on_demand' => $on_demand,
+                'timeshift_days' => $timeshift_days,
+                'start_stream_now' => $start_stream_now,
+            ]
+        ]);
+        $stmt->bind_param("ssss", $streamName, $streamURL, $category, $info);
+        $stmt->execute();
+        $stmt->close();
+    }
+    $mysqli->close();
+    header("Location: /admin/streams/manage_streams.php?msg=Stream+added+successfully");
+    exit;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -19,17 +119,33 @@ $username = $_SESSION['username'] ?? 'admin';
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- External CSS for overall admin styling -->
   <link rel="stylesheet" href="/admin/assets/css/style.css">
-  <!-- Inline CSS for the wizard and toggle switches -->
   <style>
-    .wizard-container {
-      background: rgba(0,0,0,0.45);
-      backdrop-filter: blur(6px);
-      padding: 30px;
-      border-radius: 8px;
-      margin: 100px auto;
-      max-width: 900px;
+    html, body {
+      margin: 0; 
+      padding: 0;
+      width: 100%;
+      background: #2e2e2e;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: #fff;
     }
-    /* Tab Headers */
+    .wizard-container {
+      background: rgba(255,255,255,0.1);
+      box-shadow: 0 8px 32px rgba(31,38,135,0.37);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+      margin: 50px auto;
+      max-width: 900px;
+      padding: 30px;
+    }
+    .wizard-container h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-size: 1.8rem;
+      color: #00bcd4;
+      text-align: center;
+    }
     .tab-headers {
       display: flex;
       justify-content: space-around;
@@ -66,11 +182,13 @@ $username = $_SESSION['username'] ?? 'admin';
     .form-group textarea,
     .form-group select {
       width: 100%;
-      padding: 8px;
+      padding: 10px;
       border: 1px solid #333;
       border-radius: 4px;
       background: rgba(31,31,31,0.8);
       color: #f0f0f0;
+      box-sizing: border-box;
+      font-size: 1rem;
     }
     .form-group textarea {
       resize: vertical;
@@ -78,6 +196,7 @@ $username = $_SESSION['username'] ?? 'admin';
     .form-row {
       display: flex;
       gap: 15px;
+      flex-wrap: wrap;
     }
     .form-row > .form-group {
       flex: 1;
@@ -88,7 +207,7 @@ $username = $_SESSION['username'] ?? 'admin';
       margin-top: 20px;
     }
     .tab-buttons button {
-      padding: 10px 20px;
+      padding: 12px 20px;
       background-color: #00bcd4;
       border: none;
       color: #fff;
@@ -100,7 +219,7 @@ $username = $_SESSION['username'] ?? 'admin';
     .tab-buttons button:hover {
       background-color: #0097a7;
     }
-    /* Toggle Switch Styles (for checkboxes) */
+    /* Toggle Switch Styles */
     .switch {
       position: relative;
       display: inline-block;
@@ -119,7 +238,7 @@ $username = $_SESSION['username'] ?? 'admin';
       left: 0;
       right: 0;
       bottom: 0;
-      background-color: #f44336; /* red for off */
+      background-color: #f44336;
       transition: 0.4s;
     }
     .slider:before {
@@ -133,10 +252,10 @@ $username = $_SESSION['username'] ?? 'admin';
       transition: 0.4s;
     }
     input:checked + .slider {
-      background-color: #4CAF50; /* green for on */
+      background-color: #4caf50;
     }
     input:focus + .slider {
-      box-shadow: 0 0 1px #4CAF50;
+      box-shadow: 0 0 1px #4caf50;
     }
     input:checked + .slider:before {
       transform: translateX(26px);
@@ -147,7 +266,7 @@ $username = $_SESSION['username'] ?? 'admin';
     .slider.round:before {
       border-radius: 50%;
     }
-    /* Top Actions */
+    /* Top actions */
     .top-actions {
       display: flex;
       justify-content: flex-end;
@@ -186,7 +305,7 @@ $username = $_SESSION['username'] ?? 'admin';
     </div>
   </header>
 
-  <!-- MAIN CONTENT: Add Stream Wizard -->
+  <!-- MAIN CONTENT -->
   <div class="main-content">
     <div class="wizard-container">
       <div class="top-actions">
@@ -202,9 +321,9 @@ $username = $_SESSION['username'] ?? 'admin';
         <div id="header-epg" onclick="showTab('tab-epg')">EPG</div>
         <div id="header-servers" onclick="showTab('tab-servers')">Servers</div>
       </div>
-      <!-- Form for adding stream -->
+      <!-- Form -->
       <form id="addStreamForm" method="post" action="">
-        <!-- TAB 1: DETAILS -->
+        <!-- Tab: Details -->
         <div class="tab-section active" id="tab-details">
           <div class="form-group">
             <label for="streamName">Stream Name *</label>
@@ -233,13 +352,13 @@ $username = $_SESSION['username'] ?? 'admin';
           </div>
           <div class="form-group">
             <label for="notes">Notes</label>
-            <textarea id="notes" name="notes" rows="3"></textarea>
+            <textarea id="notes" name="notes" rows="3" placeholder="Optional notes"></textarea>
           </div>
           <div class="tab-buttons">
             <button type="button" onclick="showTab('tab-advanced')">Next</button>
           </div>
         </div>
-        <!-- TAB 2: ADVANCED -->
+        <!-- Tab: Advanced -->
         <div class="tab-section" id="tab-advanced">
           <div class="form-row">
             <div class="form-group">
@@ -338,9 +457,9 @@ $username = $_SESSION['username'] ?? 'admin';
             <button type="button" onclick="showTab('tab-map')">Next</button>
           </div>
         </div>
-        <!-- TAB 3: MAP -->
+        <!-- Tab: Map -->
         <div class="tab-section" id="tab-map">
-          <p>Custom maps are advanced features. Only modify these if you know what you're doing.</p>
+          <p>Custom maps are advanced features. Only modify if you understand the settings.</p>
           <div class="form-group">
             <label>Custom Map</label>
             <input type="text" name="custom_map" placeholder="Search map...">
@@ -351,7 +470,7 @@ $username = $_SESSION['username'] ?? 'admin';
             <button type="button" onclick="showTab('tab-restart')">Next</button>
           </div>
         </div>
-        <!-- TAB 4: RESTART -->
+        <!-- Tab: Restart -->
         <div class="tab-section" id="tab-restart">
           <div class="form-group">
             <label>Days to Restart</label>
@@ -366,7 +485,7 @@ $username = $_SESSION['username'] ?? 'admin';
             <button type="button" onclick="showTab('tab-epg')">Next</button>
           </div>
         </div>
-        <!-- TAB 5: EPG -->
+        <!-- Tab: EPG -->
         <div class="tab-section" id="tab-epg">
           <div class="form-group">
             <label>EPG Source</label>
@@ -389,11 +508,12 @@ $username = $_SESSION['username'] ?? 'admin';
             <button type="button" onclick="showTab('tab-servers')">Next</button>
           </div>
         </div>
-        <!-- TAB 6: SERVERS -->
+        <!-- Tab: Servers -->
         <div class="tab-section" id="tab-servers">
           <div class="form-group">
             <label for="server_tree">Server Tree</label>
             <select id="server_tree" name="server_tree[]" multiple style="height:120px;">
+              <!-- Populate server options here -->
             </select>
           </div>
           <div class="form-group">
@@ -432,20 +552,19 @@ $username = $_SESSION['username'] ?? 'admin';
   }
   ?>
 
-  <!-- JavaScript for tab navigation -->
+  <!-- JavaScript for Tab Navigation -->
   <script>
     function showTab(tabId) {
       document.querySelectorAll('.tab-section').forEach(function(tab) {
         tab.classList.remove('active');
       });
-      // Show the requested tab
       document.getElementById(tabId).classList.add('active');
-      // Optionally update tab header active state if you wish
       document.querySelectorAll('.tab-headers div').forEach(function(header) {
         header.classList.remove('active');
       });
-      if(document.getElementById('header-' + tabId.split('-')[1])){
-        document.getElementById('header-' + tabId.split('-')[1]).classList.add('active');
+      var headerId = 'header-' + tabId.split('-')[1];
+      if(document.getElementById(headerId)){
+        document.getElementById(headerId).classList.add('active');
       }
     }
   </script>
