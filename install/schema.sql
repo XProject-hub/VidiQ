@@ -21,3 +21,18 @@ CREATE TABLE IF NOT EXISTS admin (
     username VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL
 );
+
+CREATE TABLE IF NOT EXISTS streams (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  icon VARCHAR(255) DEFAULT NULL,
+  name VARCHAR(100) NOT NULL,
+  stream_url VARCHAR(255) NOT NULL,
+  clients INT DEFAULT 0,        
+  uptime VARCHAR(50) DEFAULT NULL,      
+  player VARCHAR(255) DEFAULT NULL,         
+  epg VARCHAR(255) DEFAULT NULL,
+  stream_info TEXT,
+  category VARCHAR(50),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+

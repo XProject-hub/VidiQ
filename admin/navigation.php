@@ -138,7 +138,7 @@
               <a href="#"><i class="fas fa-stream"></i> Streams</a>
               <ul class="dropdown-menu">
                 <li><a href="/admin/add-stream.php">Add Stream</a></li>
-                <li><a href="/admin/manage-streams.php">Manage Streams</a></li>
+                <li><a href="/admin/streams/manage_streams.php">Manage Streams</a></li>
                 <li><a href="/admin/mass-edit-streams.php">Mass Edit Streams</a></li>
                 <li><a href="/admin/import-streams.php">Import Streams</a></li>
                 <li><a href="/admin/streams-statistic.php">Streams Statistic</a></li>
